@@ -9,6 +9,9 @@ N_importance = 128
 N_train = 1024
 N_test = 1024
 
+N_iters = 200000
+
+resize_factor = 0.5
 
 near = 0.0
 far = 4.7
