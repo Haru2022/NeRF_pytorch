@@ -1,4 +1,0 @@
-1. camera coords symbol
-2. whether perturb in sample-pdf
-3. whether stratified sampling in test
-4. white background t/f
