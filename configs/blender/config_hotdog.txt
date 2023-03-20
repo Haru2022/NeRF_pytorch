@@ -1,0 +1,15 @@
+expname = hotdog_train
+basedir = ./logs/blender/hotdog
+datadir = /home/cloud9/nerf/data/nerf_synthetic/hotdog
+
+resize_factor = 1.
+
+N_samples = 64
+N_importance = 128
+N_train = 1024
+N_test = 1024
+N_iters = 200000
+
+testskip = 8
+
+white_bkgd = True

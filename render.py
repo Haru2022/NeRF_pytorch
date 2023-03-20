@@ -4,6 +4,7 @@ import imageio
 import numpy as np
 import cv2
 import os
+import lpips
 import torch.nn.functional as F
 from evaluators import to8b
 from data_processor import sample_pdf, z_val_sample, get_rays
@@ -123,19 +124,20 @@ def nerf_main(rays, position_embedder, view_embedder, model_coarse, model_fine, 
 
 
 
-def render_test(position_embedder, view_embedder, model_coarse, model_fine, render_poses, hwf, mg2c, args,
+def render_test(position_embedder, view_embedder, model_coarse, model_fine, render_poses, hwk, mg2c, args,
                 gt_imgs=None, savedir=None):
     
-    H, W, focal = hwf
-    psnrs = []
+    H, W, K = hwk
+    psnrs, ssims, lpipses = [], [], []
     gt_imgs_cpu = gt_imgs.cpu().numpy()
-    #gt_imgs_gpu = gt_imgs.to(args.device)    
+    gt_imgs_gpu = gt_imgs.to(args.device)
+    lpips_vgg = lpips.LPIPS(net="vgg").to(args.device)    
 
     for i, c2w in enumerate(render_poses):
         print('=' * 50, i, '=' * 50)
         t = time.time()
         z_val_coarse = z_val_sample(args.N_test, args.near, args.far, args.N_samples)
-        rays_o, rays_d = get_rays(H,W,focal,torch.Tensor(c2w),mg2c)
+        rays_o, rays_d = get_rays(H,W,K,torch.Tensor(c2w),mg2c)
         rays_o = torch.reshape(rays_o, [-1, 3]).float()
         rays_d = torch.reshape(rays_d, [-1, 3]).float()
         full_rgb = None
@@ -159,8 +161,12 @@ def render_test(position_embedder, view_embedder, model_coarse, model_fine, rend
         if gt_imgs is not None:
             # rgb image evaluation part
             psnr = metrics.peak_signal_noise_ratio(rgb.cpu().numpy(), gt_imgs_cpu[i], data_range=1)
+            ssim = metrics.structural_similarity(rgb.cpu().numpy(), gt_imgs_cpu[i], multichannel=True, data_range=1)
+            lpips_i = lpips_vgg(rgb.permute(2, 0, 1).unsqueeze(0), gt_imgs_gpu[i].permute(2, 0, 1).unsqueeze(0))
             psnrs.append(psnr)
-            print(f"PSNR: {psnr}")
+            ssims.append(ssim)
+            lpipses.append(lpips_i.item())
+            print(f"PSNR: {psnr} SSIM: {ssim} LPIPS: {lpips_i.item()}")
 
         if savedir is not None:
             rgb8 = to8b(rgb.cpu().numpy())
@@ -168,7 +174,13 @@ def render_test(position_embedder, view_embedder, model_coarse, model_fine, rend
             imageio.imwrite(filename, rgb8)
 
     if gt_imgs is not None:
+
+        output = np.stack([psnrs, ssims, lpipses])
+        output = output.transpose([1, 0])
+        mean_output = np.array([np.mean(psnrs), np.mean(ssims), np.mean(lpipses)])
+        mean_output = mean_output.reshape([1, 9])
+        output = np.concatenate([output, mean_output], 0)
         test_result_file = os.path.join(savedir, 'test_results.txt')
-        np.savetxt(fname=test_result_file, X=psnrs, fmt='%.6f', delimiter=' ')
+        np.savetxt(fname=test_result_file, X=output, fmt='%.6f', delimiter=' ')
         print('=' * 49, 'Avg', '=' * 49)
-        print('PSNR: {:.4f}'.format(np.mean(psnrs)))
+        print('PSNR: {:.4f}, SSIM: {:.4f},  LPIPS: {:.4f} '.format(np.mean(psnrs), np.mean(ssims), np.mean(lpipses)))

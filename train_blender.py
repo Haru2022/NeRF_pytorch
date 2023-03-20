@@ -3,7 +3,7 @@ import torch
 import numpy as np
 from configs_loader import initial
 from evaluators import img2mse, mse2psnr
-from data_loader.loader_lego import load_blender_data
+from data_loader.loader_blender import load_blender_data
 from nerf_constructor import get_embedder, NeRF
 from data_processor import get_rays_batch_per_image, z_val_sample
 from render import nerf_main, render_test
@@ -17,15 +17,15 @@ def train():
     N_iters = args.N_iters+1
     args.perturb = 1. # stratified sampling. check here
 
+
     # main process
     for i in range(0 if int(checkpoint)==0 else int(checkpoint)+1, N_iters):
         img_i = np.random.choice(i_train)
         gt_rgb = imgs[img_i].to(args.device)
         pose = poses[img_i, :3, :4].to(args.device)
-        mg2c = torch.Tensor(mg2c_np).to(args.device)
 
         # get random sampled rays batch
-        gt_rgb_batch, rays_batch = get_rays_batch_per_image(gt_rgb, focal, pose, args.N_train, mg2c)
+        gt_rgb_batch, rays_batch = get_rays_batch_per_image(gt_rgb, K, pose, args.N_train, mg2c)
 
         # network inference
 
@@ -53,7 +53,7 @@ def train():
         # losses decay
         ###   update learning rate   ###
         decay_rate = 0.1
-        decay_steps = args.lrate_decay * 1000
+        decay_steps = N_iters
         new_lrate = args.lrate * (decay_rate ** ((i) / decay_steps))
         for param_group in optimizer.param_groups:
             param_group['lr'] = new_lrate
@@ -83,7 +83,7 @@ def train():
             with torch.no_grad():
                 test_poses = torch.Tensor(poses[selected_i_test].to(args.device))
                 test_imgs = imgs[selected_i_test]
-                render_test(position_embedder, view_embedder, model_coarse, model_fine, test_poses, hwf, mg2c, args,
+                render_test(position_embedder, view_embedder, model_coarse, model_fine, test_poses, hwK, mg2c, args,
                             gt_imgs=test_imgs, savedir=testsavedir)
             print('Training model saved!')
             args.is_train = True
@@ -99,8 +99,9 @@ if __name__ == '__main__':
     args, logdir, checkpoint = initial()
 
     # load data
-    imgs, poses, render_poses, hwf, i_split = load_blender_data(args.datadir, args.resize_factor, args.testskip, args.white_bkgd)
-    H,W,focal = hwf
+    imgs, poses, render_poses, hwK, i_split, mg2c_np = load_blender_data(args.datadir, args.resize_factor, args.testskip, args.white_bkgd)
+    H,W,K = hwK
+    print("h,w,k:{},{},{}".format(H,W,K))
     H,W = int(H), int(W)
     i_train, i_val, i_test = i_split
     # the radius of the camera pose ==4.03
@@ -131,12 +132,12 @@ if __name__ == '__main__':
     else:
         print('Start training from iter=0')
 
-    # meshgrid to camera
-    mg2c_np = np.array([[1,0,0],[0,-1,0],[0,0,-1]],dtype=float)
 
     # move data to gpu
     imgs = torch.Tensor(imgs).cpu()
     poses = torch.Tensor(poses).cpu()
+    mg2c = torch.Tensor(mg2c_np).to(args.device)
+    K = torch.Tensor(K).to(args.device)
 
     train()
     

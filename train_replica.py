@@ -25,7 +25,6 @@ def train():
         img_i = np.random.choice(i_train)
         gt_rgb = images[img_i].to(args.device)
         pose = poses[img_i, :3, :4].to(args.device)
-        mg2c = torch.Tensor(mg2c_np).to(args.device)
 
         target_c, batch_rays = get_rays_batch_per_image(gt_rgb,K,pose,args.N_train,mg2c)
 
@@ -94,7 +93,7 @@ if __name__ == '__main__':
     args, logdir, checkpoint = initial()
 
     # load data
-    images, poses, hwk, i_split = load_replica_data(args)
+    images, poses, hwk, i_split, mg2c_np = load_replica_data(args)
     print('Load data from', args.datadir)
 
     i_train, i_test = i_split
@@ -124,12 +123,10 @@ if __name__ == '__main__':
     else:
         print('Start training from iter=0')
 
-    
-    # meshgrid to camera
-    mg2c_np = np.array([[1,0,0],[0,1,0],[0,0,1]],dtype=float)
 
     # move data to gpu
     images = torch.Tensor(images).cpu()
     poses = torch.Tensor(poses).cpu()
+    mg2c = torch.Tensor(mg2c_np).to(args.device)
 
     train()

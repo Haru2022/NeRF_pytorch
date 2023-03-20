@@ -35,7 +35,7 @@ def config_parser():
                         help='number of rays processed in parallel, decrease if running out of memory')
     parser.add_argument("--is_train", type=bool, default=True,
                         help='train or test')
-    parser.add_argument("--N_iters", type=int, default=100000,
+    parser.add_argument("--N_iters", type=int, default=200000,
                         help='number of train iterations')
 
     # rendering options
@@ -80,9 +80,9 @@ def config_parser():
                         help='frequency of console printout and metric logging')
     parser.add_argument("--i_img", type=int, default=500,
                         help='frequency of tensorboard image logging')
-    parser.add_argument("--i_save", type=int, default=5000,
+    parser.add_argument("--i_save", type=int, default=10000,
                         help='frequency of weight ckpt saving')
-    parser.add_argument("--i_test", type=int, default=5000,
+    parser.add_argument("--i_test", type=int, default=50000,
                         help='frequency of testset saving')
 
     return parser
@@ -95,6 +95,10 @@ def initial():
     # get log time
     if args.log_time is None:
         args.log_time = time.strftime("%Y%m%d%H%M", time.localtime())
+        checkpoint = 0
+    else:
+        tars = sorted([f for f in os.listdir(log_dir) if f.endswith('tar')])
+        checkpoint = tars[-1].split('.')[-2]
 
     if torch.cuda.is_available():
         print('use cuda')
@@ -108,8 +112,6 @@ def initial():
     print('Logs in', log_dir)
     os.makedirs(log_dir, exist_ok=True)
 
-    tars = sorted([f for f in os.listdir(log_dir) if f.endswith('tar')])
-    checkpoint = tars[-1].split('.')[-2]
 
     # args init
     if int(checkpoint) == 0:

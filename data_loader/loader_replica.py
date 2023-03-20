@@ -4,7 +4,7 @@ import json
 import torch
 import imageio
 import numpy as np
-from data_processor import central_resize_batch
+from data_processor import central_resize_batch, meshgrid2cam
 
 np.random.seed(0)
 
@@ -66,5 +66,8 @@ def load_replica_data(args):
 
     hwk = [int(H), int(W), K]
 
+    # meshgrid to camera transformation matrix
+    mg2c = meshgrid2cam(trans=[1,-1,-1])
 
-    return imgs, poses, hwk, i_split
+
+    return imgs, poses, hwk, i_split, mg2c

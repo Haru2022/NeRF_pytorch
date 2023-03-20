@@ -65,25 +65,15 @@ r_z = lambda yaw: np.array([
     # this can be helpful for understanding the process of rendering_poses generation of lego data.
 ###
 
-def get_rays(H, W, intrinsic, c2w=None, mg2c=None):
+def get_rays(H, W, K, c2w=None, mg2c=None):
     i, j = torch.meshgrid(torch.linspace(0, W - 1, W),
                           torch.linspace(0, H - 1, H))  # pytorch's meshgrid has indexing='ij'
     i = i.t()
     j = j.t()
 
-    check_elems = torch.Tensor(intrinsic).numel()
-
-    # get the ray directions by either isotropic focal or 3X3 intrinsics
-    if check_elems==1:
-        focal = intrinsic
-        dirs = torch.stack([(i - (W - 1) * .5) / focal, (j - (H - 1) * .5) / focal, torch.ones_like(i)], -1) # depth is always equals to 1, (H,W,3)
-    elif check_elems==9:
-        K = intrinsic
-        dirs = torch.stack([(i - K[0, 2]) / K[0, 0], (j - K[1, 2]) / K[1, 1], K[2, 2] * torch.ones_like(i)], -1)
-    else:
-        raise Exception("data_processor::get_rays: wrong type of intrinsic info:{}! (should be f_1x1 or K_3x3)".format(intrinsic))    
-
-
+    # depth is always equals to 1, (H,W,3)
+    dirs = torch.stack([(i - K[0, 2]) / K[0, 0], (j - K[1, 2]) / K[1, 1], K[2, 2] * torch.ones_like(i)], -1)
+  
     # the camera coords is right-up-backward in lego data. However, the generated meshgrid is right-down-forward.
     # Therefore the direction should be transformed by [[1,0,0],[0,-1,0][0,0,-1]].
     # change the mg2c based on the definition of specific datasets
@@ -133,9 +123,6 @@ def get_rays_batch_per_image(rgb, intrinsic, c2w, N_train, mg2c):
 
 
 
-
-
-
 #TODO
 def get_ray_batch_full_set(rgbs, focal, poses, N_train, random=True):
     1
@@ -167,18 +154,19 @@ def sample_pdf(bins, weights, N_samples, det=False):
 
     # Invert CDF
     u = u.contiguous()
-    inds = torch.searchsorted(cdf, u, right=True)
+    inds = torch.searchsorted(cdf, u, right=True) # \in (0,N_coarse-2)
     below = torch.max(torch.zeros_like(inds - 1), inds - 1)
     above = torch.min((cdf.shape[-1] - 1) * torch.ones_like(inds), inds)
-    inds_g = torch.stack([below, above], -1)  # (batch, N_samples, 2)
+    inds_g = torch.stack([below, above], -1)  # (batch, N_fine, 2)
 
     # cdf_g = tf.gather(cdf, inds_g, axis=-1, batch_dims=len(inds_g.shape)-2)
     # bins_g = tf.gather(bins, inds_g, axis=-1, batch_dims=len(inds_g.shape)-2)
-    matched_shape = [inds_g.shape[0], inds_g.shape[1], cdf.shape[-1]]
+    matched_shape = [inds_g.shape[0], inds_g.shape[1], cdf.shape[-1]] #(batch, N_fine, N_coarse-2)
     cdf_g = torch.gather(cdf.unsqueeze(1).expand(matched_shape), 2, inds_g)
-    bins_g = torch.gather(bins.unsqueeze(1).expand(matched_shape), 2, inds_g)
+    #print(matched_shape,inds_g.shape,cdf_g.shape) #[1024, 128, 62] torch.Size([1024, 128, 2]) torch.Size([1024, 128, 2])
+    bins_g = torch.gather(bins.unsqueeze(1).expand(matched_shape), 2, inds_g) # map the bins with equal interval to new bins concentrating on the regions with principal probability distribution.
 
-    denom = (cdf_g[..., 1] - cdf_g[..., 0])
+    denom = (cdf_g[..., 1] - cdf_g[..., 0]) # probability density in every interval, like diffrentiating the cdf to get pdf (batch, N_fine)
     denom = torch.where(denom < 1e-5, torch.ones_like(denom), denom)
     t = (u - cdf_g[..., 0]) / denom
     samples = bins_g[..., 0] + t * (bins_g[..., 1] - bins_g[..., 0])
@@ -186,10 +174,10 @@ def sample_pdf(bins, weights, N_samples, det=False):
     return samples
 
 # data resize
-def central_resize_batch(imgs, factor, focal):
+def central_resize_batch(imgs, factor, K):
     # (weight, hight)
     h, w = imgs[0].shape[:2]
-    h_, w_, focal_ = int(h*factor), int(w*factor), focal*factor
+    h_, w_, K_ = int(h*factor), int(w*factor), K*factor
     print("Before resize:{}".format(imgs.shape))
 
     imgs_resize = []
@@ -208,9 +196,31 @@ def central_resize_batch(imgs, factor, focal):
 
     print("After resize:{}".format(imgs_resize.shape))
     
-    return imgs_resize, h_, w_, focal_
+    return imgs_resize, h_, w_, K_
 
+# meshgrid to camera coordinate transformation
+def meshgrid2cam(trans=[1,1,1]):
 
-# data crop
+    trans = np.array(trans, dtype=float)
+    mg2c = np.zeros((3,3),dtype=float)
+    mg2c[0,0] = trans[0]
+    mg2c[1,1] = trans[1]
+    mg2c[2,2] = trans[2]
+
+    return mg2c
+
+# create intrinsic matrix K_3x3 by an isotropic focal length
+def focal2intrinsic(focal):
+
+    K = np.zeros((3,3), dtype=float)
+    K[0,0] = focal
+    K[1,1] = focal
+    K[2,2] = 1.
+
+    return K
+
 ##TODO
+# central crop imgs
+def central_crop(img, factor):
+    1
 
