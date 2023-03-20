@@ -107,13 +107,21 @@ def initial():
     log_dir = os.path.join(args.basedir, args.expname, args.log_time)
     print('Logs in', log_dir)
     os.makedirs(log_dir, exist_ok=True)
-    f = os.path.join(log_dir, 'args.txt')
-    with open(f, 'w') as file:
-        for arg in sorted(vars(args)):
-            attr = getattr(args, arg)
-            file.write('{} = {}\n'.format(arg, attr))
-    if args.config is not None:
-        f = os.path.join(log_dir, 'configs.txt')
+
+    tars = sorted([f for f in os.listdir(log_dir) if f.endswith('tar')])
+    checkpoint = tars[-1].split('.')[-2]
+
+    # args init
+    if int(checkpoint) == 0:
+        print('args init, create args.txt and config.txt...')
+        f = os.path.join(log_dir, 'args.txt')
         with open(f, 'w') as file:
-            file.write(open(args.config, 'r').read())
-    return args
+            for arg in sorted(vars(args)):
+                attr = getattr(args, arg)
+                file.write('{} = {}\n'.format(arg, attr))
+        if args.config is not None:
+            f = os.path.join(log_dir, 'configs.txt')
+            with open(f, 'w') as file:
+                file.write(open(args.config, 'r').read())
+
+    return args, log_dir, checkpoint

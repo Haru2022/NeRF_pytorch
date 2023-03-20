@@ -14,12 +14,14 @@ torch.cuda.manual_seed(3)
 def train():
     model_fine.train()
     model_coarse.train()
-    N_iters = args.N_iters+1
+    #N_iters = args.N_iters+1
+    N_iters = 500000
     args.perturb = 1. # stratified sampling. check here
 
     z_val_coarse = z_val_sample(args.N_train, args.near, args.far, args.N_samples)
     args.N_ins = None
-    for i in range(0, N_iters):
+   
+    for i in range(0 if int(checkpoint)==0 else int(checkpoint)+1, N_iters):
         img_i = np.random.choice(i_train)
         gt_rgb = images[img_i].to(args.device)
         pose = poses[img_i, :3, :4].to(args.device)
@@ -89,7 +91,7 @@ def train():
 
 
 if __name__ == '__main__':
-    args = initial()
+    args, logdir, checkpoint = initial()
 
     # load data
     images, poses, hwk, i_split = load_replica_data(args)
@@ -112,6 +114,17 @@ if __name__ == '__main__':
     grad_vars = list(model_coarse.parameters()) + list(model_fine.parameters())
     optimizer = torch.optim.Adam(params=grad_vars, lr=args.lrate, betas=(0.9, 0.999))
 
+    # checkpoint resume
+    if int(checkpoint) > 0:
+        print('Resume from checkpoint:{}/{}.tar'.format(logdir,checkpoint))
+        ckpt = torch.load(os.path.join(logdir,'{}.tar'.format(checkpoint)))
+        model_coarse.load_state_dict(ckpt['network_coarse_state_dict'])
+        model_fine.load_state_dict(ckpt['network_fine_state_dict'])
+        optimizer.load_state_dict(ckpt['optimizer_state_dict'])
+    else:
+        print('Start training from iter=0')
+
+    
     # meshgrid to camera
     mg2c_np = np.array([[1,0,0],[0,1,0],[0,0,1]],dtype=float)
 
