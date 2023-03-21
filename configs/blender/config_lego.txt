@@ -10,6 +10,9 @@ N_train = 1024
 N_test = 1024
 N_iters = 200000
 
+#i_save = 1000
+#i_test = 5000
+
 testskip = 8
 
 white_bkgd = True

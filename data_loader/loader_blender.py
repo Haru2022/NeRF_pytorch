@@ -111,7 +111,7 @@ def load_blender_data(basedir, resize_factor, testskip=1, white_bkgd=False):
     mg2c = meshgrid2cam(trans=[1,-1,-1])
 
     # focal_1x1 to K_3x3
-    K = focal2intrinsic(focal)
+    K = focal2intrinsic(focal, H, W)
     
         
     return imgs, poses, render_poses, [H, W, K], i_split, mg2c

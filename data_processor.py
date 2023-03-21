@@ -178,6 +178,7 @@ def central_resize_batch(imgs, factor, K):
     # (weight, hight)
     h, w = imgs[0].shape[:2]
     h_, w_, K_ = int(h*factor), int(w*factor), K*factor
+    K_[2,2] = 1
     print("Before resize:{}".format(imgs.shape))
 
     imgs_resize = []
@@ -210,12 +211,14 @@ def meshgrid2cam(trans=[1,1,1]):
     return mg2c
 
 # create intrinsic matrix K_3x3 by an isotropic focal length
-def focal2intrinsic(focal):
+def focal2intrinsic(focal, H, W):
 
     K = np.zeros((3,3), dtype=float)
     K[0,0] = focal
     K[1,1] = focal
     K[2,2] = 1.
+    K[0,2] = (W - 1) * .5
+    K[1,2] = (H - 1) * .5
 
     return K
 
@@ -223,4 +226,3 @@ def focal2intrinsic(focal):
 # central crop imgs
 def central_crop(img, factor):
     1
-
