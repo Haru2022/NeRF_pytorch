@@ -1,12 +1,12 @@
 import os
 import torch
 import numpy as np
-from configs_loader import initial
-from evaluators import img2mse, mse2psnr
+from configs.configs_loader import initial
+from tools.evaluators import img2mse, mse2psnr
 from data_loader.loader_replica import load_replica_data
-from nerf_constructor import get_embedder, NeRF
-from data_processor import z_val_sample, get_rays_batch_per_image
-from render import nerf_main, render_test
+from nerf.nerf_constructor import get_embedder, NeRF
+from tools.data_processor import z_val_sample, get_rays_batch_per_image
+from nerf.render import nerf_main, render_test
 
 np.random.seed(0)
 torch.cuda.manual_seed(3)

@@ -4,7 +4,7 @@ import numpy as np
 import imageio 
 import json
 import cv2
-from data_processor import central_resize_batch
+from tools.data_processor import central_resize_batch
 from tools.coord_trans_np import gen_intrinsics
 
 

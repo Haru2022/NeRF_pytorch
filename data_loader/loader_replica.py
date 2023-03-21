@@ -4,7 +4,7 @@ import json
 import torch
 import imageio
 import numpy as np
-from data_processor import central_resize_batch
+from tools.data_processor import central_resize_batch
 from tools.coord_trans_np import gen_intrinsics
 
 np.random.seed(0)

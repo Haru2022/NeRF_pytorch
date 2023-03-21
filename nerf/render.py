@@ -6,8 +6,8 @@ import cv2
 import os
 import lpips
 import torch.nn.functional as F
-from evaluators import to8b
-from data_processor import sample_pdf, z_val_sample, get_rays
+from tools.evaluators import to8b
+from tools.data_processor import sample_pdf, z_val_sample, get_rays
 from skimage import metrics
 
 def render_train(raw, z_vals, rays_d):

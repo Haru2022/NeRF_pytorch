@@ -33,9 +33,11 @@ def coord_trans_img2pix(dx=1.,dy=1.,u0=None,v0=None, H=0, W=0 ,type='opencv', ot
             v0: offset of the origin along v axis from img to pix plane.
             *Note: (u0,v0) will be set defaultly to (W/2, H/2)
             type: define the coordinate rotation from img plane to pix plane, 'opencv' or 'opengl'
-                  or 'other'. If it's set to 'opengl', the z and y axes will be in the opposite 
-                  directions. If type='other', please specify the rotation matrix like 
-                  [[-1,0,0],[0,1,0],[0,0,-1]] and pass it to this fun via arg 'other_type'.
+                or 'other' see https://stackoverflow.com/questions/44375149/opencv-to-opengl-coordinate-system-transform 
+                for details. If it's set to 'opengl', the z and y axes will be in the opposite 
+                directions. If type='other', please specify the rotation matrix like 
+                [[-1,0,0],[0,1,0],[0,0,-1]] and pass it to this fun via arg 'other_type'. No further operation if 
+                type='opencv' cause the image coord is the same as pixel plane.
     """
 
     # the transformation matrix is [1/dx, 0, W/2; 0, 1/dy, H/2; 0,0,1] if u0 and v0 are not defined.
@@ -84,9 +86,11 @@ def gen_intrinsics(focal, dx=1.,dy=1.,u0=None,v0=None, H=0, W=0 ,type='opencv', 
             v0: offset of the origin along v axis from img to pix plane.
             *Note: (u0,v0) will be set defaultly to (W/2, H/2)
             type: define the coordinate rotation from img plane to pix plane, 'opencv' or 'opengl'
-                  or 'other'. If it's set to 'opengl', the z and y axes will be in the opposite 
-                  directions. If type='other', please specify the rotation matrix like 
-                  [[-1,0,0],[0,1,0],[0,0,-1]] and pass it to this fun via arg 'other_type'
+                or 'other' see https://stackoverflow.com/questions/44375149/opencv-to-opengl-coordinate-system-transform 
+                for details. If it's set to 'opengl', the z and y axes will be in the opposite 
+                directions. If type='other', please specify the rotation matrix like 
+                [[-1,0,0],[0,1,0],[0,0,-1]] and pass it to this fun via arg 'other_type'. No further operation if 
+                type='opencv' cause the image coord is the same as pixel plane.
             focal: the focal length of the camera
     """
 

@@ -33,9 +33,11 @@ def coord_trans_img2pix(dx=1.,dy=1.,u0=None,v0=None, H=0, W=0 ,type='opencv', ot
             v0: offset of the origin along v axis from img to pix plane.
             *Note: (u0,v0) will be set defaultly to (W/2, H/2)
             type: define the coordinate rotation from img plane to pix plane, 'opencv' or 'opengl'
-                  or 'other'. If it's set to 'opengl', the z and y axes will be in the opposite 
-                  directions. If type='other', please specify the rotation matrix like 
-                  [[-1,0,0],[0,1,0],[0,0,-1]] and pass it to this fun via arg 'other_type'.
+                or 'other' see https://stackoverflow.com/questions/44375149/opencv-to-opengl-coordinate-system-transform 
+                for details. If it's set to 'opengl', the z and y axes will be in the opposite 
+                directions. If type='other', please specify the rotation matrix like 
+                [[-1,0,0],[0,1,0],[0,0,-1]] and pass it to this fun via arg 'other_type'. No further operation if 
+                type='opencv' cause the image coord is the same as pixel plane.
     """
 
     # the transformation matrix is [1/dx, 0, W/2; 0, 1/dy, H/2; 0,0,1] if u0 and v0 are not defined.
@@ -85,9 +87,11 @@ def gen_intrinsics(focal, dx=1.,dy=1.,u0=None,v0=None, H=0, W=0 ,type='opencv', 
             v0: offset of the origin along v axis from img to pix plane.
             *Note: (u0,v0) will be set defaultly to (W/2, H/2)
             type: define the coordinate rotation from img plane to pix plane, 'opencv' or 'opengl'
-                  or 'other'. If it's set to 'opengl', the z and y axes will be in the opposite 
-                  directions. If type='other', please specify the rotation matrix like 
-                  [[-1,0,0],[0,1,0],[0,0,-1]] and pass it to this fun via arg 'other_type'
+                or 'other' see https://stackoverflow.com/questions/44375149/opencv-to-opengl-coordinate-system-transform 
+                for details. If it's set to 'opengl', the z and y axes will be in the opposite 
+                directions. If type='other', please specify the rotation matrix like 
+                [[-1,0,0],[0,1,0],[0,0,-1]] and pass it to this fun via arg 'other_type'. No further operation if 
+                type='opencv' cause the image coord is the same as pixel plane.
             focal: the focal length of the camera
     """
 
@@ -135,8 +139,9 @@ def world2pix_decompose(intrinsic, T_w2p):
 
 
 def world2cam_lookat(cam_pose, up, target):
-    """ generate the extrinsic by look-at camera
+    """ generate the extrinsic by look-at camera 
         http://ksimek.github.io/2012/08/22/extrinsic/
+            the camera coords is opengl type
 
         Args:
             inputs:
@@ -156,17 +161,88 @@ def world2cam_lookat(cam_pose, up, target):
     y_axis = np.cross(x_axis,neg_z_axis)
     z_axis = -neg_z_axis
 
-    R = np.stack((x_axis,y_axis,z_axis),0)
-    t = -R @ cam_pose
-    T_w2c = np.eye(4,dtype=float)
-    T_w2c[:3,:3] = R
-    T_w2c[:3,3] = t
 
-    return R, np.reshape(t,(3,1)), T_w2c
+    R_cam = np.stack((x_axis,y_axis,z_axis),0)
+    T_w2c = RC2T(R_cam,cam_pose)
+    #t = -R @ cam_pose
+    #T_w2c = np.eye(4,dtype=float)
+    #T_w2c[:3,:3] = R
+    #T_w2c[:3,3] = t
+
+    return T_w2c
 
 #R,t,T = world2cam_lookat(np.array([1.,1.,1.]), np.array([0.,0.,-1.]), np.array([0.,0.,0.]))
 #print(R, t, np.linalg.det(R), T @ np.array([0,0,0,1]))
 
+
+def RC2T(R_cam,C_cam,trans_w2c=True):
+    """create world-to-camera or camera-to-world transformation matrix by
+       the rotation and center of the camera in world coordinates.
+
+       Args:
+            R_cam: rotation matrix describing the cam's orientation w.r.t the world coords
+            C_cam: the camera cneter in the world coords
+            trans_w2c: return the transformation from world to camera coords or inversely.
+
+    """
+    T = np.eye(4,dtype=float)
+    R_cam = np.array(R_cam,dtype=float)
+    C_cam = np.array(C_cam,dtype=float)
+
+    if trans_w2c:# world to camera
+        T[:3,:3] = R_cam.transpose()
+        T[:3,3] = -R_cam.transpose() @ C_cam
+    else:# camera to world
+        T[:3,:3] = R_cam
+        T[:3,3] = C_cam
+
+    return T
+
+
+def rotation_mtx_compose(rad_x,rad_y,rad_z, order=[0,1,2]):
+    """create rotation matrix by 3 rotation rads along three axes
+
+        Args:
+            rad_x: rotation angle (in rads) along current x-axis
+            rad_y: rotation angle (in rads) along current y-axis
+            rad_z: rotation angle (in rads) along current z-axis
+            order: the rotation order. e,g, [2,0,1] means the order is y-z-x
+    """
+    r_x = rot_x(rad_x)
+    r_y = rot_y(rad_y)
+    r_z = rot_z(rad_z)
+
+    r_stack = np.stack([r_x,r_y,r_z],0)
+    order = np.array(order)
+    buffer = np.zeros_like(r_stack)
+    for i in range(0,3):
+        buffer[i,:] = r_stack[order[i],:]
+
+    rotation = buffer[2,:] @ buffer[1,:] @ buffer[0,:]
+
+    return rotation[:3,:3]
+
+
+#print(rotation_mtx_compose(np.pi/3,np.pi/4,np.pi/6,[2,1,0]))
+
+
+def T_convert(T,wc2cw=True):
+    
+    R = T[:3,:3]
+    t = T[:3,3]
+
+    if wc2cw:
+        R_cam = R.transpose()
+        C_cam = - R @ t
+        T[:3,:3] = R_cam
+        T[:3,3] = C_cam
+    else:
+        R_cam = R
+        C_cam = t
+        T[:3,:3] = R_cam.transpose()
+        T[:3,3] = - R_cam.transpose() @ C_cam
+
+    return T
 
 
 
