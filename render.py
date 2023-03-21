@@ -124,7 +124,7 @@ def nerf_main(rays, position_embedder, view_embedder, model_coarse, model_fine, 
 
 
 
-def render_test(position_embedder, view_embedder, model_coarse, model_fine, render_poses, hwk, mg2c, args,
+def render_test(position_embedder, view_embedder, model_coarse, model_fine, render_poses, hwk, args,
                 gt_imgs=None, savedir=None):
     
     H, W, K = hwk
@@ -137,7 +137,7 @@ def render_test(position_embedder, view_embedder, model_coarse, model_fine, rend
         print('=' * 50, i, '=' * 50)
         t = time.time()
         z_val_coarse = z_val_sample(args.N_test, args.near, args.far, args.N_samples)
-        rays_o, rays_d = get_rays(H,W,K,torch.Tensor(c2w),mg2c)
+        rays_o, rays_d = get_rays(H,W,K,torch.Tensor(c2w))
         rays_o = torch.reshape(rays_o, [-1, 3]).float()
         rays_d = torch.reshape(rays_d, [-1, 3]).float()
         full_rgb = None

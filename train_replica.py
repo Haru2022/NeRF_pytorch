@@ -26,7 +26,7 @@ def train():
         gt_rgb = images[img_i].to(args.device)
         pose = poses[img_i, :3, :4].to(args.device)
 
-        target_c, batch_rays = get_rays_batch_per_image(gt_rgb,K,pose,args.N_train,mg2c)
+        target_c, batch_rays = get_rays_batch_per_image(gt_rgb,K,pose,args.N_train)
 
         all_info = nerf_main(batch_rays, position_embedder, view_embedder, model_coarse, model_fine, z_val_coarse, args)
 
@@ -81,7 +81,7 @@ def train():
             with torch.no_grad():
                 test_poses = torch.Tensor(poses[selected_i_test].to(args.device))
                 test_imgs = images[selected_i_test]
-                render_test(position_embedder, view_embedder, model_coarse, model_fine, test_poses, hwk, mg2c, args,
+                render_test(position_embedder, view_embedder, model_coarse, model_fine, test_poses, hwk, args,
                             gt_imgs=test_imgs, savedir=testsavedir)
             print('Training model saved!')
             args.is_train = True
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     args, logdir, checkpoint = initial()
 
     # load data
-    images, poses, hwk, i_split, mg2c_np = load_replica_data(args)
+    images, poses, hwk, i_split = load_replica_data(args)
     print('Load data from', args.datadir)
 
     i_train, i_test = i_split
@@ -127,6 +127,6 @@ if __name__ == '__main__':
     # move data to gpu
     images = torch.Tensor(images).cpu()
     poses = torch.Tensor(poses).cpu()
-    mg2c = torch.Tensor(mg2c_np).to(args.device)
-
+    K = torch.Tensor(K).to(args.device)
+    
     train()

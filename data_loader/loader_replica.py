@@ -4,7 +4,8 @@ import json
 import torch
 import imageio
 import numpy as np
-from data_processor import central_resize_batch, meshgrid2cam
+from data_processor import central_resize_batch
+from tools.coord_trans_np import gen_intrinsics
 
 np.random.seed(0)
 
@@ -58,7 +59,8 @@ def load_replica_data(args):
     H, W = imgs[0].shape[:2]
 
     focal = W / 2.0
-    K = np.array([[focal, 0, (W - 1) * 0.5], [0, focal, (H - 1) * 0.5], [0, 0, 1]])
+    K = gen_intrinsics(focal=focal,H=H,W=W,type='opencv')
+    #K = np.array([[focal, 0, (W - 1) * 0.5], [0, focal, (H - 1) * 0.5], [0, 0, 1]])
 
     if args.resize_factor != 1.:
         #cv2.imshow('raw',imgs[0])
@@ -66,8 +68,5 @@ def load_replica_data(args):
 
     hwk = [int(H), int(W), K]
 
-    # meshgrid to camera transformation matrix
-    mg2c = meshgrid2cam(trans=[1,-1,-1])
 
-
-    return imgs, poses, hwk, i_split, mg2c
+    return imgs, poses, hwk, i_split

@@ -4,7 +4,8 @@ import numpy as np
 import imageio 
 import json
 import cv2
-from data_processor import central_resize_batch, meshgrid2cam, focal2intrinsic
+from data_processor import central_resize_batch
+from tools.coord_trans_np import gen_intrinsics
 
 
 trans_t = lambda t: torch.Tensor([
@@ -107,14 +108,10 @@ def load_blender_data(basedir, resize_factor, testskip=1, white_bkgd=False):
         print('no white bkgd')
         imgs = imgs[..., :3]
 
-    # meshgrid to camera transformation matrix
-    mg2c = meshgrid2cam(trans=[1,-1,-1])
-
-    # focal_1x1 to K_3x3
-    K = focal2intrinsic(focal, H, W)
+    K = gen_intrinsics(focal=focal,H=H,W=W,type='opengl')
     
         
-    return imgs, poses, render_poses, [H, W, K], i_split, mg2c
+    return imgs, poses, render_poses, [H, W, K], i_split
 
 
 #basedir = "H:\DM-NeRF-main\data/nerf_synthetic/lego"

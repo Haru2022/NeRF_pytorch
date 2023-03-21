@@ -65,7 +65,7 @@ r_z = lambda yaw: np.array([
     # this can be helpful for understanding the process of rendering_poses generation of lego data.
 ###
 
-def get_rays(H, W, K, c2w=None, mg2c=None):
+def get_rays(H, W, K, c2w=None):
     i, j = torch.meshgrid(torch.linspace(0, W - 1, W),
                           torch.linspace(0, H - 1, H))  # pytorch's meshgrid has indexing='ij'
     i = i.t()
@@ -74,11 +74,7 @@ def get_rays(H, W, K, c2w=None, mg2c=None):
     # depth is always equals to 1, (H,W,3)
     dirs = torch.stack([(i - K[0, 2]) / K[0, 0], (j - K[1, 2]) / K[1, 1], K[2, 2] * torch.ones_like(i)], -1)
   
-    # the camera coords is right-up-backward in lego data. However, the generated meshgrid is right-down-forward.
-    # Therefore the direction should be transformed by [[1,0,0],[0,-1,0][0,0,-1]].
-    # change the mg2c based on the definition of specific datasets
     dirs = dirs[..., np.newaxis] # (H,W,3,1)
-    dirs = torch.matmul(mg2c,dirs) # (H,W,3,1)
     rays_d = torch.matmul(c2w[:3, :3],dirs).squeeze(-1) # (H,W,3,1) to (H,W,3)
 
 
@@ -101,9 +97,9 @@ def get_rays_np(H, W, focal, c2w):
     rays_o = np.broadcast_to(c2w[:3, -1], np.shape(rays_d)) # (H,W,3)
     return rays_o, rays_d
 
-def get_rays_batch_per_image(rgb, intrinsic, c2w, N_train, mg2c):
+def get_rays_batch_per_image(rgb, intrinsic, c2w, N_train):
     H, W, C = rgb.shape
-    rays_o, rays_d = get_rays(H, W, intrinsic, c2w, mg2c) #(H,W,3)
+    rays_o, rays_d = get_rays(H, W, intrinsic, c2w) #(H,W,3)
 
     #coords = torch.stack(torch.meshgrid(torch.linspace(0, H - 1, H), torch.linspace(0, W - 1, W)),-1) #(W,H,2)
     #coords = torch.reshape(coords,[-1,2])
