@@ -14,6 +14,6 @@ I refer to the [NeRF](https://github.com/bmild/nerf) and [DM-NeRF](https://githu
 
 21 Mar 2023 v1.1
 
-Add tools for coordinate transformations (see ./tools).
+Add tools for coordinate transformations (see ./tools) based on [here](http://ksimek.github.io/2012/08/22/extrinsic/).
 The mg2c in the last version is integrated into the process of intrinsics generation. It's actually the coordinate transformation from image/camera coordinates with different definitions (e.g., opencv, opengl or others) to the pixel plane.
 
