@@ -10,7 +10,7 @@ from evaluators import to8b
 from data_processor import sample_pdf, z_val_sample, get_rays
 from skimage import metrics
 
-def render_train(raw, z_vals, rays_d):
+def render_train(raw, z_vals, rays_d, white_bkgd):
 
     # get alpha value of a single sampling point
     raw2alpha = lambda raw, dists, act_fn=F.relu: 1. - torch.exp(-act_fn(raw) * dists)
@@ -38,12 +38,18 @@ def render_train(raw, z_vals, rays_d):
     # get the weight to for the depth estimation and resampling
     # represent the contribution of each sampled point to the final render
     # ideal situation: no obstacle before and the point is 100% non-transparent
-    weights = alpha*T_accum
+    weights = alpha * T_accum
 
     # the color of a ray is determined by 1) the probability of the ray travels
     # from t0 to t_{n-1} without hitting any other particle; and 2) the alpha value
     # that denotes the transparency of the sampled point; 3) the colors of each sampled point
     rgb_map = torch.sum(weights[..., None] * rgb, -2)  # [N_rays, 3]
+
+    # To composite onto a white background, use the accumulated alpha map.
+    if white_bkgd:
+        # Sum of weights along each ray. This value is in [0, 1] up to numerical error.
+        acc_map = torch.sum(weights,-1)
+        rgb_map = rgb_map + (1.-acc_map[..., None])
 
      # Estimated depth map is expected distance.
     depth_map = torch.sum(weights * z_vals, -1)
@@ -64,10 +70,13 @@ def nerf_main(rays, position_embedder, view_embedder, model_coarse, model_fine, 
 
     # stratified samples in those intervals if perturb >0
     if args.perturb > 0.:
-        interval = (args.far-args.near)/args.N_samples
+        # get intervals between samples
+        mids = .5 * (z_vals_coarse[..., 1:] + z_vals_coarse[..., :-1])
+        upper = torch.cat([mids, z_vals_coarse[..., -1:]], -1)
+        lower = torch.cat([z_vals_coarse[..., :1], mids], -1)
+        # stratified samples in those intervals
         t_rand = torch.rand(z_vals_coarse.shape)
-        lower = z_vals_coarse[...,:-1]
-        z_vals_coarse = lower + interval*t_rand[...,:-1]
+        z_vals_coarse = lower + (upper - lower) * t_rand
 
 
     # [N_rays, 1, 3] + [N_rays, 1, 3] * [N_rays, N_samples, 1], [1,3] * [N_samples, 1] will expand to [N_samples, 3] * [N_samples, 3] by replicating the elems
@@ -86,7 +95,7 @@ def nerf_main(rays, position_embedder, view_embedder, model_coarse, model_fine, 
     raw_coarse = torch.reshape(raw_coarse, list(pts.shape[:-1]) + [raw_coarse.shape[-1]]) # reshape [N_rays * N_samples, 4] to [N_rays, N_samples, rgb + density]
     
     #render via coarse network
-    rgb_coarse, weights_coarse, depth_coarse = render_train(raw_coarse, z_vals_coarse, rays_d)
+    rgb_coarse, weights_coarse, depth_coarse = render_train(raw_coarse, z_vals_coarse, rays_d,args.white_bkgd)
 
 
     ## why to fine samping
@@ -94,10 +103,10 @@ def nerf_main(rays, position_embedder, view_embedder, model_coarse, model_fine, 
 
     #fine point sampling based on the weights
     z_vals_mid = .5 * (z_vals_coarse[..., 1:] + z_vals_coarse[..., :-1])
-    z_samples = sample_pdf(z_vals_mid, weights_coarse[..., 1:-1], args.N_importance, det=False)
+    z_samples = sample_pdf(z_vals_mid, weights_coarse[..., 1:-1], args.N_importance, det=(args.perturb == 0.))
     z_samples = z_samples.detach() # stop gradient propagation
 
-    z_vals_fine, _ = torch.sort(torch.cat([z_vals_coarse, z_samples], -1), -1)
+    z_vals_fine ,_ = torch.sort(torch.cat([z_vals_coarse, z_samples], -1), -1)
     pts = rays_o[..., None, :] + rays_d[..., None, :] * z_vals_fine[..., :, None]  # [N_rays, N_samples + N_importance, 3]
 
     pts_flat = torch.reshape(pts, [-1, pts.shape[-1]])
@@ -113,7 +122,7 @@ def nerf_main(rays, position_embedder, view_embedder, model_coarse, model_fine, 
     raw_fine = torch.reshape(raw_fine, list(pts.shape[:-1]) + [raw_fine.shape[-1]])
 
     # fine render part
-    rgb_fine, weights_fine, depth_fine = render_train(raw_fine, z_vals_fine, rays_d)
+    rgb_fine, weights_fine, depth_fine = render_train(raw_fine, z_vals_fine, rays_d, args.white_bkgd)
 
     all_info = {'rgb_fine': rgb_fine, 'z_vals_fine': z_vals_fine,
                 'rgb_coarse': rgb_coarse, 'z_vals_coarse': z_vals_coarse,

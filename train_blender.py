@@ -8,21 +8,25 @@ from nerf_constructor import get_embedder, NeRF
 from data_processor import get_rays_batch_per_image, z_val_sample
 from render import nerf_main, render_test
 
-np.random.seed(0)
-torch.cuda.manual_seed(3)
+#np.random.seed(0)
+#torch.cuda.manual_seed(3)
 
 def train():
     model_fine.train()
     model_coarse.train()
     N_iters = args.N_iters+1
-    args.perturb = 1. # stratified sampling. check here
+    #args.perturb = 1. # stratified sampling. check here
 
-
+    z_val_coarse = z_val_sample(args.N_train, args.near, args.far, args.N_samples) #z value, ranges from near to far
     # main process
     for i in range(0 if int(checkpoint)==0 else int(checkpoint)+1, N_iters):
         img_i = np.random.choice(i_train)
         gt_rgb = imgs[img_i].to(args.device)
         pose = poses[img_i, :3, :4].to(args.device)
+
+        #for debug
+        #gt_rgb = imgs[1].to(args.device)
+        #pose = poses[1, :3, :4].to(args.device)
 
         # get random sampled rays batch
         gt_rgb_batch, rays_batch = get_rays_batch_per_image(gt_rgb, K, pose, args.N_train, mg2c)
@@ -32,8 +36,7 @@ def train():
         # coarse sampling
         # no prior information about in what depth the ray will terminate on the surface. sampling 
         # in the whole space from near to far.
-        z_vals_coarse = z_val_sample(args.N_train, args.near, args.far, args.N_samples) # z value, ranges from near to far
-        all_info = nerf_main(rays_batch, position_embedder, view_embedder, model_coarse, model_fine, z_vals_coarse, args)
+        all_info = nerf_main(rays_batch, position_embedder, view_embedder, model_coarse, model_fine, z_val_coarse, args)
 
         # coarse losses
         rgb_loss_coarse = img2mse(all_info['rgb_coarse'], gt_rgb_batch)
@@ -72,7 +75,7 @@ def train():
             }
             torch.save(save_model, path)
 
-        if i % args.i_test == 0:
+        if i % args.i_test == 0 and i>1:
             model_coarse.eval()
             model_fine.eval()
             args.is_train = False
@@ -104,6 +107,7 @@ if __name__ == '__main__':
     print("h,w,k:{},{},{}".format(H,W,K))
     H,W = int(H), int(W)
     i_train, i_val, i_test = i_split
+
     # the radius of the camera pose ==4.03
     # the obj is enclosed with a shpere with r=4
     args.near = 2.

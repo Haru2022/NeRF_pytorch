@@ -4,6 +4,7 @@ import numpy as np
 import imageio 
 import json
 import cv2
+from evaluators import to8b
 
 
 
@@ -106,6 +107,7 @@ def get_rays_np(H, W, focal, c2w):
     rays_o = np.broadcast_to(c2w[:3, -1], np.shape(rays_d)) # (H,W,3)
     return rays_o, rays_d
 
+
 def get_rays_batch_per_image(rgb, intrinsic, c2w, N_train, mg2c):
     H, W, C = rgb.shape
     rays_o, rays_d = get_rays(H, W, intrinsic, c2w, mg2c) #(H,W,3)
@@ -136,6 +138,7 @@ def get_ray_batch_full_set(rgbs, focal, poses, N_train, random=True):
 def z_val_sample(N_rays, near, far, N_samples):
     near, far = near * torch.ones(size=(N_rays, 1)), far * torch.ones(size=(N_rays, 1))
     t_vals = torch.linspace(0., 1., steps=N_samples)
+    #z_vals_coarse = 1./(1./near * (1.-t_vals) + 1./far * (t_vals))
     z_vals_coarse = near + t_vals * (far - near) # depth along the z direction in the camera coord
     z_vals_coarse = z_vals_coarse.expand([N_rays, N_samples])
     return z_vals_coarse
@@ -196,10 +199,10 @@ def central_resize_batch(imgs, factor, K):
 
     #for i in range(100):
     #    print(i)
-    #    cv2.imwrite(os.path.join('./data/nerf_synthetic/debug','{}_resize.png'.format(i)),
-    #                imgs_resize[i][...,:3]*255)
-    #    cv2.imwrite(os.path.join('./data/nerf_synthetic/debug','{}_raw.png'.format(i)),
-    #                imgs[i][...,:3]*255)
+    #    imageio.imwrite(os.path.join('./data/nerf_synthetic/debug','{}_resize.png'.format(i)),
+    #                to8b(imgs_resize[i]))
+    #    imageio.imwrite(os.path.join('./data/nerf_synthetic/debug','{}_raw.png'.format(i)),
+    #                to8b(imgs[i]))
         
 
     print("After resize:{}".format(imgs_resize.shape))
@@ -220,7 +223,7 @@ def meshgrid2cam(trans=[1,1,1]):
 # create intrinsic matrix K_3x3 by an isotropic focal length
 def focal2intrinsic(focal, H, W):
 
-    K = np.array([[focal, 0, (W - 1) * 0.5], [0, focal, (H - 1) * 0.5], [0, 0, 1]])
+    K = np.array([[focal, 0, W * 0.5], [0, focal, H * 0.5], [0, 0, 1]])
     return K
 
 ##TODO

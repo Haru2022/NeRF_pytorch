@@ -98,13 +98,13 @@ def load_blender_data(basedir, resize_factor, testskip=1, white_bkgd=False):
     
     if resize_factor != 1.:
         #cv2.imshow('raw',imgs[0])
-        imgs, H, W, focal = central_resize_batch(imgs, resize_factor,focal)
+        imgs, H, W, focal = central_resize_batch(imgs, resize_factor, focal)
 
     if white_bkgd:
-        print('white bkgd')
+        print('white bkgd=',white_bkgd)
         imgs = imgs[..., :3]*imgs[..., -1:] + (1.-imgs[..., -1:])
     else:
-        print('no white bkgd')
+        print('white bkgd=',white_bkgd)
         imgs = imgs[..., :3]
 
     # meshgrid to camera transformation matrix
