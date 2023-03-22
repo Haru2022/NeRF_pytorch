@@ -72,15 +72,20 @@ def get_rays(H, W, K, c2w=None, mg2c=None):
     j = j.t()
 
     # depth is always equals to 1, (H,W,3)
-    dirs = torch.stack([(i - K[0, 2]) / K[0, 0], (j - K[1, 2]) / K[1, 1], K[2, 2] * torch.ones_like(i)], -1)
+    dirs = torch.stack([(i - K[0, 2]) / K[0, 0], -(j - K[1, 2]) / K[1, 1], -K[2, 2] * torch.ones_like(i)], -1)
+
+    #print('imhere',K[1, 2],K[0, 2],K[0, 0])
   
     # the camera coords is right-up-backward in lego data. However, the generated meshgrid is right-down-forward.
     # Therefore the direction should be transformed by [[1,0,0],[0,-1,0][0,0,-1]].
     # change the mg2c based on the definition of specific datasets
-    dirs = dirs[..., np.newaxis] # (H,W,3,1)
-    dirs = torch.matmul(mg2c,dirs) # (H,W,3,1)
-    rays_d = torch.matmul(c2w[:3, :3],dirs).squeeze(-1) # (H,W,3,1) to (H,W,3)
 
+    # back to here if the K setting is right. check
+    #dirs = dirs[..., np.newaxis] # (H,W,3,1)
+    #dirs = torch.matmul(mg2c,dirs) # (H,W,3,1)
+    #rays_d = torch.matmul(c2w[:3, :3],dirs).squeeze(-1) # (H,W,3,1) to (H,W,3)
+
+    rays_d = torch.sum(dirs[..., np.newaxis, :] * c2w[:3, :3], -1)
 
     # Rotate ray directions from camera frame to the world frame
     # dot product, equals to: [c2w.dot(dir) for dir in dirs]
@@ -177,8 +182,11 @@ def sample_pdf(bins, weights, N_samples, det=False):
 def central_resize_batch(imgs, factor, K):
     # (weight, hight)
     h, w = imgs[0].shape[:2]
-    h_, w_, K_ = int(h*factor), int(w*factor), K*factor
+    h_, w_, K_re = int(h*factor), int(w*factor), K*factor
     print("Before resize:{}".format(imgs.shape))
+
+    if np.size(np.array(K,dtype=float))>1:
+        K_re[-1,-1] = 1
 
     imgs_resize = []
     for img in imgs:
@@ -196,7 +204,7 @@ def central_resize_batch(imgs, factor, K):
 
     print("After resize:{}".format(imgs_resize.shape))
     
-    return imgs_resize, h_, w_, K_
+    return imgs_resize, h_, w_, K_re
 
 # meshgrid to camera coordinate transformation
 def meshgrid2cam(trans=[1,1,1]):
@@ -210,13 +218,9 @@ def meshgrid2cam(trans=[1,1,1]):
     return mg2c
 
 # create intrinsic matrix K_3x3 by an isotropic focal length
-def focal2intrinsic(focal):
+def focal2intrinsic(focal, H, W):
 
-    K = np.zeros((3,3), dtype=float)
-    K[0,0] = focal
-    K[1,1] = focal
-    K[2,2] = 1.
-
+    K = np.array([[focal, 0, (W - 1) * 0.5], [0, focal, (H - 1) * 0.5], [0, 0, 1]])
     return K
 
 ##TODO

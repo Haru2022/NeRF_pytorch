@@ -178,7 +178,7 @@ def render_test(position_embedder, view_embedder, model_coarse, model_fine, rend
         output = np.stack([psnrs, ssims, lpipses])
         output = output.transpose([1, 0])
         mean_output = np.array([np.mean(psnrs), np.mean(ssims), np.mean(lpipses)])
-        mean_output = mean_output.reshape([1, 9])
+        mean_output = mean_output.reshape([1, 3])
         output = np.concatenate([output, mean_output], 0)
         test_result_file = os.path.join(savedir, 'test_results.txt')
         np.savetxt(fname=test_result_file, X=output, fmt='%.6f', delimiter=' ')

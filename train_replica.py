@@ -98,6 +98,7 @@ if __name__ == '__main__':
 
     i_train, i_test = i_split
     H, W, K = hwk
+    print("h,w,k:{},{},{}".format(H,W,K))
 
     # Create nerf model
     # create nerf models
