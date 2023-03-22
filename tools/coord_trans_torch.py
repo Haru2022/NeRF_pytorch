@@ -36,7 +36,7 @@ def coord_trans_img2pix(dx=1.,dy=1.,u0=None,v0=None, H=0, W=0 ,type='opencv', ot
                 or 'other' see https://stackoverflow.com/questions/44375149/opencv-to-opengl-coordinate-system-transform 
                 for details. If it's set to 'opengl', the z and y axes will be in the opposite 
                 directions. If type='other', please specify the rotation matrix like 
-                [[-1,0,0],[0,1,0],[0,0,-1]] and pass it to this fun via arg 'other_type'. No further operation if 
+                [1,-1,1] and pass it to this fun via arg 'other_type'. No further operation if 
                 type='opencv' cause the image coord is the same as pixel plane.
     """
 
@@ -52,11 +52,12 @@ def coord_trans_img2pix(dx=1.,dy=1.,u0=None,v0=None, H=0, W=0 ,type='opencv', ot
 
 
     if type == 'opengl':
-        mtx[1,:] = -mtx[1,:]
-        mtx[2,:] = -mtx[2,:]
+        mtx[1,1] = -mtx[1,1]
+        mtx[2,2] = -mtx[2,2]
     elif type == 'other':
         other_type = np.array(other_type,dtype=float)
-        mtx = other_type @ mtx
+        for i in range(0,3):
+            mtx[i,i] = mtx[i,i]*other_type[i]
     elif type != 'opencv':
         print('Error: The image coordinate type "{}" is wrong. please specify one type from "opencv", "opengl" or your self-defined type "other" and pass it by the arg \'other_type\''.format(type))
         raise Exception('coord_trans_img2pix')

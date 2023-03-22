@@ -174,7 +174,10 @@ def central_resize_batch(imgs, factor, K):
     # (weight, hight)
     h, w = imgs[0].shape[:2]
     h_, w_, K_ = int(h*factor), int(w*factor), K*factor
-    K_[2,2] = 1
+
+    if np.size(np.array(K_))>1:
+        K_[2,2] = 1
+        
     print("Before resize:{}".format(imgs.shape))
 
     imgs_resize = []
