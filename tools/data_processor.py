@@ -73,9 +73,10 @@ def get_rays(H, W, K, c2w=None):
 
     # depth is always equals to 1, (H,W,3)
     dirs = torch.stack([(i - K[0, 2]) / K[0, 0], (j - K[1, 2]) / K[1, 1], K[2, 2] * torch.ones_like(i)], -1)
-  
-    dirs = dirs[..., np.newaxis] # (H,W,3,1)
-    rays_d = torch.matmul(c2w[:3, :3],dirs).squeeze(-1) # (H,W,3,1) to (H,W,3)
+    
+    #dirs = dirs[..., np.newaxis] # (H,W,3,1)
+    #rays_d = torch.matmul(c2w[:3, :3],dirs).squeeze(-1) # (H,W,3,1) to (H,W,3)
+    rays_d = torch.sum(dirs[..., np.newaxis, :] * c2w[:3, :3], -1)
 
 
     # Rotate ray directions from camera frame to the world frame
