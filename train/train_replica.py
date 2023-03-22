@@ -8,14 +8,14 @@ from nerf.nerf_constructor import get_embedder, NeRF
 from tools.data_processor import z_val_sample, get_rays_batch_per_image
 from nerf.render import nerf_main, render_test
 
-np.random.seed(0)
-torch.cuda.manual_seed(3)
+#np.random.seed(0)
+#torch.cuda.manual_seed(3)
 
 def train():
     model_fine.train()
     model_coarse.train()
-    #N_iters = args.N_iters+1
-    N_iters = 500000
+    N_iters = args.N_iters+1
+    #N_iters = 500000
     args.perturb = 1. # stratified sampling. check here
 
     z_val_coarse = z_val_sample(args.N_train, args.near, args.far, args.N_samples)
@@ -51,7 +51,7 @@ def train():
         # losses decay
         ###   update learning rate   ###
         decay_rate = 0.1
-        decay_steps = args.lrate_decay * 1000
+        decay_steps = N_iters
         new_lrate = args.lrate * (decay_rate ** ((i) / decay_steps))
         for param_group in optimizer.param_groups:
             param_group['lr'] = new_lrate

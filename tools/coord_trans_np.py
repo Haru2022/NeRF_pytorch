@@ -246,6 +246,26 @@ def T_convert(T,wc2cw=True):
     return T
 
 
+def Rotation_along_axis(axis, rad):
 
+    axis = np.array(axis,dtype=float)
+    norm = axis/np.linalg.norm(axis)
+    n_x = norm[0]
+    n_y = norm[1]
+    n_z = norm[2]
 
+    c = np.cos(rad)
+    s = np.sin(rad)
+
+    col_1 = np.array([n_x*n_x*(1-c)+c, n_x*n_y*(1-c)+n_z*s, n_x*n_z*(1-c)-n_y*s], dtype=float)
+    col_2 = np.array([n_x*n_y*(1-c)-n_z*s, n_y*n_y*(1-c)+c, n_y*n_z*(1-c)+n_x*s], dtype=float)
+    col_3 = np.array([n_x*n_z*(1-c)+n_y*s, n_y*n_z*(1-c)-n_z*s, n_z*n_z*(1-c)+c], dtype=float)
+
+    T = np.stack([col_1,col_2,col_3],axis=-1)
+
+    #print(np.stack([[1,0,0],[1,2,0],[1,0,3]],axis=-1))
+
+    return T
+
+#print(Rotation_along_axis([1,1,1],np.pi))
 

@@ -1,5 +1,5 @@
 import numpy as np
-from coord_trans_np import world2cam_lookat, T_convert
+from coord_trans_np import world2cam_lookat, T_convert, rotation_mtx_compose, Rotation_along_axis
 
 # for blender dataset test
 def render_pose_circle(target, radius, rad_xy2z, seq):
@@ -22,5 +22,20 @@ def render_pose_circle(target, radius, rad_xy2z, seq):
     
 
 # for replica dataset test
-def render_pose_marching(central_ray, seq, circle_count):
-    1
+def render_pose_marching(start, end, seq):
+    
+    interval_center = end-start
+
+    up = [0,0,1]
+    render_poses = []
+
+    for idx in range(seq):
+
+        C_cam = start + interval_center*idx/seq
+        T_w2c = world2cam_lookat(C_cam, up, end)
+        T_c2w = T_convert(T_w2c)
+        render_poses.append(T_c2w)
+        
+    return np.array(render_poses,dtype=float)
+    
+    

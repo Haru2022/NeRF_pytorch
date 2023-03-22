@@ -8,8 +8,8 @@ from nerf.nerf_constructor import get_embedder, NeRF
 from tools.data_processor import get_rays_batch_per_image, z_val_sample
 from nerf.render import nerf_main, render_test
 
-np.random.seed(0)
-torch.cuda.manual_seed(3)
+#np.random.seed(0)
+#torch.cuda.manual_seed(3)
 
 def train():
     model_fine.train()
