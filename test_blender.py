@@ -44,7 +44,7 @@ def test():
         print('video saved!')
 
         # visualizer test
-        pcd_gen(pcl_rgb_valids[:,:3],pcl_rgb_valids[:,3:])
+        #pcd_gen(pcl_rgb_valids[:,:3],pcl_rgb_valids[:,3:])
 
         np.save(os.path.join(visual_dir,'obj_resize_{}.npy'.format(args.resize_factor)),pcl_rgb_valids,'wb')
 

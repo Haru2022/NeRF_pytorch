@@ -40,6 +40,7 @@ def pcd_gen(source_pts,source_rgb):
     cl, ind = point_cloud.remove_radius_outlier(nb_points=5, radius=0.01) # outlier removal
     #cl, ind = voxel_down_pcd.remove_statistical_outlier(nb_neighbors=20, std_ratio=2.0)
     point_cloud = point_cloud.select_by_index(ind)
+    o3d.visualization.draw_geometries([point_cloud])
     point_cloud = point_cloud.voxel_down_sample(voxel_size=0.01) # voxel for mesh
     #display_inlier_outlier(voxel_down_pcd, ind)
     o3d.visualization.draw_geometries([point_cloud])
@@ -54,7 +55,7 @@ def pcd_gen(source_pts,source_rgb):
     o3d.visualization.draw_geometries([mesh], mesh_show_back_face=True)
 
 
-data = np.load('./logs/blender/lego/lego_train/202303221805/visualization/obj_resize_0.5.npy')
-pts = data[...,:3]
-color = data[...,3:]
-pcd_gen(pts,color)
+#data = np.load('./logs/blender/lego/lego_train/202303221805/visualization/obj_resize_0.5.npy')
+#pts = data[...,:3]
+#color = data[...,3:]
+#pcd_gen(pts,color)

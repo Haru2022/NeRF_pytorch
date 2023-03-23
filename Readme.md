@@ -17,3 +17,10 @@ I refer to the [NeRF](https://github.com/bmild/nerf) and [DM-NeRF](https://githu
 Add tools for coordinate transformations (see ./tools) based on [here](http://ksimek.github.io/2012/08/22/extrinsic/).
 The mg2c in the last version is integrated into the process of intrinsics generation. It's actually the coordinate transformation from image/camera coordinates with different definitions (e.g., opencv, opengl or others) to the pixel plane.
 
+23 Mar 2023 v1.1
+
+- Add visualizer for generating pointcloud and mesh of the object by the perdicted depth+rgb map.
+- Test the coordinate transformation tool. It can works correctly now.
+- Train the network with blender datset (lego and hotdot). The results on 3 metrics (PSNR, SSIM and LPIPS) are all similar to that in the paper.
+- Adjust the code structre with higher readibility.
+- Add render_pose generation tool for algo. test. Now it can only provide circle around path and marching-like path, both of which looking at the target.
