@@ -96,12 +96,10 @@ def initial():
     if args.log_time is None:
         args.log_time = time.strftime("%Y%m%d%H%M", time.localtime())
         log_dir = os.path.join(args.basedir, args.expname, args.log_time)
-        print('Logs in', log_dir)
         os.makedirs(log_dir, exist_ok=True)
         checkpoint = 0
     else:
         log_dir = os.path.join(args.basedir, args.expname, args.log_time)
-        print('Logs in', log_dir)
         tars = sorted([f for f in os.listdir(log_dir) if f.endswith('tar')])
         checkpoint = tars[-1].split('.')[-2]
 

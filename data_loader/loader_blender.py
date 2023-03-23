@@ -6,6 +6,7 @@ import json
 import cv2
 from tools.data_processor import central_resize_batch
 from tools.coord_trans_np import gen_intrinsics
+from tools.render_pose_gen import render_pose_circle
 
 
 trans_t = lambda t: torch.Tensor([
@@ -95,7 +96,9 @@ def load_blender_data(basedir, resize_factor, testskip=1, white_bkgd=False):
     camera_angle_x = float(meta['camera_angle_x']) # angle between ox_l and ox_r
     focal = .5 * W / np.tan(.5 * camera_angle_x)
 
-    render_poses = torch.stack([pose_spherical(angle, -30.0, 4.0) for angle in np.linspace(-180,180,40+1)[:-1]],0)
+    #render_poses = torch.stack([pose_spherical(angle, -30.0, 4.0) for angle in np.linspace(-180,180,40+1)[:-1]],0)
+
+    render_poses = torch.tensor(render_pose_circle([0,0,0],4,np.pi/6,40)).float()
     
     if resize_factor != 1.:
         #cv2.imshow('raw',imgs[0])

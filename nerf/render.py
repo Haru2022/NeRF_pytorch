@@ -131,13 +131,17 @@ def nerf_main(rays, position_embedder, view_embedder, model_coarse, model_fine, 
 
 
 def render_test(position_embedder, view_embedder, model_coarse, model_fine, render_poses, hwk, args,
-                gt_imgs=None, savedir=None):
+                gt_imgs=None, savedir=None, obj_recon = False):
     
     H, W, K = hwk
     psnrs, ssims, lpipses = [], [], []
-    gt_imgs_cpu = gt_imgs.cpu().numpy()
-    gt_imgs_gpu = gt_imgs.to(args.device)
-    lpips_vgg = lpips.LPIPS(net="vgg").to(args.device)    
+    if gt_imgs is not None:
+        gt_imgs_cpu = gt_imgs.cpu().numpy()
+        gt_imgs_gpu = gt_imgs.to(args.device)
+        lpips_vgg = lpips.LPIPS(net="vgg").to(args.device)
+
+    pcl_rgb_valid_total = None
+    rgbs = None
 
     for i, c2w in enumerate(render_poses):
         print('=' * 50, i, '=' * 50)
@@ -146,7 +150,7 @@ def render_test(position_embedder, view_embedder, model_coarse, model_fine, rend
         rays_o, rays_d = get_rays(H,W,K,torch.Tensor(c2w))
         rays_o = torch.reshape(rays_o, [-1, 3]).float()
         rays_d = torch.reshape(rays_d, [-1, 3]).float()
-        full_rgb = None
+        full_rgb, full_pcl= None, None
         for step in range(0, H * W, args.N_test):
             N_test = args.N_test
             if step + N_test > H * W:
@@ -161,8 +165,33 @@ def render_test(position_embedder, view_embedder, model_coarse, model_fine, rend
                 full_rgb = all_info['rgb_fine']
             else:
                 full_rgb = torch.cat((full_rgb, all_info['rgb_fine']), dim=0)
+            
+            if obj_recon:
+                depth = all_info['depth_fine'][...,None]
+                zeros = torch.zeros_like(depth)
+                pts = rays_io + rays_id * depth.expand(rays_id.shape)
+                pts[...,2] = torch.where(depth[...,0]>args.near,pts[...,2],zeros[...,0])
+                pts[...,2] = torch.where(depth[...,0]<args.far,pts[...,2],zeros[...,0])
+                if full_pcl is None:
+                    full_pcl = pts
+                else:
+                    full_pcl = torch.cat((full_pcl,pts),dim=0)
 
         rgb = full_rgb.reshape([H, W, full_rgb.shape[-1]])
+
+        if rgbs is None:
+            rgbs = rgb[None,...] 
+        else:
+            rgbs = torch.cat([rgbs,rgb],0) #[imgs_num,H,W,3]
+
+        if obj_recon:
+            pcl_rgb = torch.cat([full_pcl,full_rgb],dim=1)
+            pcl_rgb_valid = pcl_rgb[pcl_rgb[...,2]>0.] # remove invalid points as background
+            if pcl_rgb_valid_total is None:
+                pcl_rgb_valid_total =  pcl_rgb_valid
+            else:
+                pcl_rgb_valid_total = torch.cat([pcl_rgb_valid_total,pcl_rgb_valid],0)
+        
 
         if gt_imgs is not None:
             # rgb image evaluation part
@@ -178,6 +207,7 @@ def render_test(position_embedder, view_embedder, model_coarse, model_fine, rend
             rgb8 = to8b(rgb.cpu().numpy())
             filename = os.path.join(savedir, '{:03d}.png'.format(i))
             imageio.imwrite(filename, rgb8)
+            
 
     if gt_imgs is not None:
 
@@ -190,3 +220,9 @@ def render_test(position_embedder, view_embedder, model_coarse, model_fine, rend
         np.savetxt(fname=test_result_file, X=output, fmt='%.6f', delimiter=' ')
         print('=' * 49, 'Avg', '=' * 49)
         print('PSNR: {:.4f}, SSIM: {:.4f},  LPIPS: {:.4f} '.format(np.mean(psnrs), np.mean(ssims), np.mean(lpipses)))
+
+    if obj_recon:
+        return pcl_rgb_valid_total.cpu().numpy(), rgbs.cpu().numpy()
+    else:
+        return rgbs.cpu().numpy()
+    

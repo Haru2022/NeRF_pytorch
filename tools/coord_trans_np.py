@@ -138,8 +138,33 @@ def world2pix_decompose(intrinsic, T_w2p):
 
 #print(world2pix_decompose(np.eye(3,dtype=float),[[-1,0,0,2],[0,1,0,1],[0,0,-1,1],[0,0,0,1]]))
 
+def RC2T(R_cam,C_cam,type=None):
+    """create world-to-camera or camera-to-world transformation matrix by
+       the rotation and center of the camera in world coordinates.
 
-def world2cam_lookat(cam_pose, up, target):
+       Args:
+            R_cam: rotation matrix describing the cam's orientation w.r.t the world coords
+            C_cam: the camera cneter in the world coords
+            trans_w2c: return the transformation from world to camera coords or inversely.
+
+    """
+    T = np.eye(4,dtype=float)
+    R_cam = np.array(R_cam,dtype=float)
+    C_cam = np.array(C_cam,dtype=float)
+
+    if type == 'w2c':# world to camera
+        T[:3,:3] = R_cam.transpose()
+        T[:3,3] = -R_cam.transpose() @ C_cam
+    elif type == 'c2w':# camera to world
+        T[:3,:3] = R_cam
+        T[:3,3] = C_cam
+    else:
+        print("Error: please specify the T type \'w2c\' or \'c2w\'")
+        raise Exception()
+
+    return T
+
+def T_lookat(cam_pose, up, target,type=None):
     """ generate the extrinsic by look-at camera 
         http://ksimek.github.io/2012/08/22/extrinsic/
             the camera coords is opengl type
@@ -162,42 +187,18 @@ def world2cam_lookat(cam_pose, up, target):
     y_axis = np.cross(x_axis,neg_z_axis)
     z_axis = -neg_z_axis
 
-
-    R_cam = np.stack((x_axis,y_axis,z_axis),0)
-    T_w2c = RC2T(R_cam,cam_pose)
+    R_cam = np.stack((x_axis,y_axis,z_axis),0).transpose()
+    T = RC2T(R_cam,cam_pose,type)
     #t = -R @ cam_pose
     #T_w2c = np.eye(4,dtype=float)
     #T_w2c[:3,:3] = R
     #T_w2c[:3,3] = t
 
-    return T_w2c
+    return T
 
-#R,t,T = world2cam_lookat(np.array([1.,1.,1.]), np.array([0.,0.,-1.]), np.array([0.,0.,0.]))
+#print(world2cam_lookat(np.array([4.,3.,0]), np.array([0.,0.,1.]), np.array([0.,0.,0.])))
 #print(R, t, np.linalg.det(R), T @ np.array([0,0,0,1]))
 
-
-def RC2T(R_cam,C_cam,trans_w2c=True):
-    """create world-to-camera or camera-to-world transformation matrix by
-       the rotation and center of the camera in world coordinates.
-
-       Args:
-            R_cam: rotation matrix describing the cam's orientation w.r.t the world coords
-            C_cam: the camera cneter in the world coords
-            trans_w2c: return the transformation from world to camera coords or inversely.
-
-    """
-    T = np.eye(4,dtype=float)
-    R_cam = np.array(R_cam,dtype=float)
-    C_cam = np.array(C_cam,dtype=float)
-
-    if trans_w2c:# world to camera
-        T[:3,:3] = R_cam.transpose()
-        T[:3,3] = -R_cam.transpose() @ C_cam
-    else:# camera to world
-        T[:3,:3] = R_cam
-        T[:3,3] = C_cam
-
-    return T
 
 
 def rotation_mtx_compose(rad_x,rad_y,rad_z, order=[0,1,2]):
@@ -227,21 +228,24 @@ def rotation_mtx_compose(rad_x,rad_y,rad_z, order=[0,1,2]):
 #print(rotation_mtx_compose(np.pi/3,np.pi/4,np.pi/6,[2,1,0]))
 
 
-def T_convert(T,wc2cw=True):
+def T_convert(T,type=None):
     
     R = T[:3,:3]
     t = T[:3,3]
 
-    if wc2cw:
+    if type =='wc2cw':
         R_cam = R.transpose()
         C_cam = - R @ t
         T[:3,:3] = R_cam
         T[:3,3] = C_cam
-    else:
+    elif type == 'cw2wc':
         R_cam = R
         C_cam = t
         T[:3,:3] = R_cam.transpose()
         T[:3,3] = - R_cam.transpose() @ C_cam
+    else:
+        print("Error: please specify the convert type \'wc2cw\' or \'cw2wc\'")
+        raise Exception()
 
     return T
 
