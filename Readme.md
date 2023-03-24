@@ -27,23 +27,16 @@ The mg2c in the last version is integrated into the process of intrinsics genera
 
 24 Mar 2023 v1.1
 - The evaluation metrics compared with that in the paper
-    | dataset_code  | PSNR  | SSIM   | LPIPS  |
+    | dataset_code_iters  | PSNR  | SSIM   | LPIPS  |
     |---|---|---|---|
-    | synthetic_lego_haru  |  30.4273 |0.9572 |0.0388 |
-    | synthetic_hotdog_haru  |  34.8165 |0.9664 |0.0477 |
-    | synthetic_avg_nerf  |  31.01 |0.947 |0.081 |
+    | synthetic_lego_haru_200K  |  30.4273 |0.9572 |0.0388 |
+    | synthetic_lego_nerf_500K  |  32.54 |0.961 |0.050 |
+    | synthetic_hotdog_haru_200K  |  34.8165 |0.9664 |0.0477 |
+    | synthetic_hotdog_nerf_500K  |  36.18 |0.974 | 0.121 |
     ||||
 
 - Visualization about the syhthetic views:
-<div align=center><img src="./readme_visual/rgb_lego.gif" width="50%"><img src="./readme_visual/rgb_hotdog.gif" width="50%"></div>
-- Pointcloud, voxel and mesh of the lego dataset
+    <div align=center><img src="./readme_visual/rgb_lego.gif" width="50%"><img src="./readme_visual/rgb_hotdog.gif" width="50%"></div>
+    
+- [Pointcloud](https://youtu.be/Vi1iftw7FQQ), [voxel](https://youtu.be/irh28e_FcYI) and [mesh](https://youtu.be/D5L9xWYBkY8) of the lego dataset
 
-[![test] 111](https://youtu.be/Vi1iftw7FQQ)
-[![test] 111](https://youtu.be/irh28e_FcYI)
-[![test] 111](https://youtu.be/D5L9xWYBkY8)
-
-<video controls="controls" loop="loop" width="500" preload="preload" autoplay="autoplay" >
-    <source src="https://youtu.be/Vi1iftw7FQQ" type="video/mp4">
-    <source src="https://youtu.be/irh28e_FcYI" type="video/mp4">
-    <source src="https://youtu.be/D5L9xWYBkY8" type="video/mp4">
-</videos>
