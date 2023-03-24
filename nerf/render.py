@@ -168,10 +168,11 @@ def render_test(position_embedder, view_embedder, model_coarse, model_fine, rend
             
             if obj_recon:
                 depth = all_info['depth_fine'][...,None]
-                zeros = torch.zeros_like(depth)
+                label = 1e5 * torch.ones_like(depth)
                 pts = rays_io + rays_id * depth.expand(rays_id.shape)
-                pts[...,2] = torch.where(depth[...,0]>args.near,pts[...,2],zeros[...,0])
-                pts[...,2] = torch.where(depth[...,0]<args.far,pts[...,2],zeros[...,0])
+                # labelling outlier with z=1e9
+                pts[...,2] = torch.where(depth[...,0]>args.near,pts[...,2],label[...,0]) 
+                pts[...,2] = torch.where(depth[...,0]<args.far,pts[...,2],label[...,0])
                 if full_pcl is None:
                     full_pcl = pts
                 else:
@@ -186,7 +187,7 @@ def render_test(position_embedder, view_embedder, model_coarse, model_fine, rend
 
         if obj_recon:
             pcl_rgb = torch.cat([full_pcl,full_rgb],dim=1)
-            pcl_rgb_valid = pcl_rgb[pcl_rgb[...,2]>0.] # remove invalid points as background
+            pcl_rgb_valid = pcl_rgb[pcl_rgb[...,2]<1e4] # remove invalid points as background
             if pcl_rgb_valid_total is None:
                 pcl_rgb_valid_total =  pcl_rgb_valid
             else:

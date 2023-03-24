@@ -20,7 +20,7 @@ The mg2c in the last version is integrated into the process of intrinsics genera
 23 Mar 2023 v1.1
 
 - Add visualizer for generating pointcloud and mesh of the object by the perdicted depth+rgb map.
-- Test the coordinate transformation tool. It can works correctly now.
+- Test the coordinate transformation tool. It works correctly now.
 - Train the network with blender datset (lego and hotdot). The results on 3 metrics (PSNR, SSIM and LPIPS) are all similar to that in the paper.
 - Adjust the code structre with higher readibility.
-- Add render_pose generation tool for algo. test. Now it can only provide circle around path and marching-like path, both of which looking at the target.
+- Add render_pose generation tool for algo. test. Now it can only provide circle-around path and marching-like path, both of which looking at the target.

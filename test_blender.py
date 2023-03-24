@@ -2,7 +2,7 @@ import os
 import torch
 import numpy as np
 from tools.evaluators import to8b
-from tools.visualizer import pcd_gen
+from tools.visualizer_ import pcd_gen
 from configs.configs_loader import initial
 from data_loader.loader_blender import load_blender_data
 from nerf.nerf_constructor import get_embedder, NeRF
