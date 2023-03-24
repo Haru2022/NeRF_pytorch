@@ -36,8 +36,8 @@ The mg2c in the last version is integrated into the process of intrinsics genera
 
 - Visualization about the syhthetic video:
 
-<video src="https://github.com/Haru2022/NeRF_pytorch/blob/v1.1/readme_visual/rgb_hotdog.mp4" controls="controls" style="max-width: 480px;">
-</video>
-<video src="https://github.com/Haru2022/NeRF_pytorch/blob/v1.1/readme_visual/rgb_lego.mp4" controls="controls" style="max-width: 480px;">
-</video>
+<video id="video" controls="" preload="none">
+    <source id="mp4" src="https://github.com/Haru2022/NeRF_pytorch/blob/v1.1/readme_visual/rgb_hotdog.mp4" type=video/mp4>
+</videos>
+
 
