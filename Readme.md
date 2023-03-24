@@ -36,4 +36,4 @@ The mg2c in the last version is integrated into the process of intrinsics genera
 
 - Visualization about the syhthetic video:
 
-<iframe src='//gifs.com/embed/111-EqVQv4' frameborder='0' scrolling='no' width='1920px' height='1080px' style='-webkit-backface-visibility: hidden;-webkit-transform: scale(1);' ></iframe>
+![test](https://github.com/Haru2022/NeRF_pytorch/blob/v1.1/readme_visual/pointcloud_lego.mp4)
