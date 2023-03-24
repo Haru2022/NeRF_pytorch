@@ -36,7 +36,9 @@ The mg2c in the last version is integrated into the process of intrinsics genera
 
 - Visualization about the syhthetic video:
 
-
+<video id="video" controls="" preload="preload" width="360">
 lego | hotdog
 :-: | :-:
-<video src='readme_visual/rgb_lego.mp4' width=360/> | <video src='readme_visual/rgb_hotdog.mp4' width=360/>
+<source id="1" src='readme_visual/rgb_lego.mp4' type="video/mp4"> | <source id="2" src='readme_visual/rgb_lego.mp4' type="video/mp4"> 
+</videos>
+
