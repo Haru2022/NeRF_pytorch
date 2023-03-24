@@ -24,3 +24,15 @@ The mg2c in the last version is integrated into the process of intrinsics genera
 - Train the network with blender datset (lego and hotdot). The results on 3 metrics (PSNR, SSIM and LPIPS) are all similar to that in the paper.
 - Adjust the code structre with higher readibility.
 - Add render_pose generation tool for algo. test. Now it can only provide circle-around path and marching-like path, both of which looking at the target.
+
+24 Mar 2023 v1.1
+- The evaluation metrics compared with that in the paper
+    | dataset_code  | PSNR  | SSIM   | LPIPS  |
+    |---|---|---|---|
+    | synthetic_lego_haru  |  30.509233 |0.955127 |0.039615 |
+    | synthetic_hotdog_haru  |  34.816590 |0.966425 |0.047743 |
+    | synthetic_avg_nerf  |  31.01 |0.947 |0.081 |
+    ||||
+
+- Visualization about the syhthetic video:
+
