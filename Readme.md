@@ -38,7 +38,9 @@ The mg2c in the last version is integrated into the process of intrinsics genera
 <div align=center><img src="./readme_visual/rgb_lego.gif" width="50%"><img src="./readme_visual/rgb_hotdog.gif" width="50%"></div>
 - Pointcloud, voxel and mesh of the lego dataset
 
-<video controls="" width="480" preload="preload" autoplay="autoplay" >
+<iframe width="420" src="https://youtu.be/Vi1iftw7FQQ" frameborder="0"></iframe>
+
+<video controls="controls" loop="loop" width="500" preload="preload" autoplay="autoplay" >
     <source src="https://youtu.be/Vi1iftw7FQQ" type="video/mp4">
     <source src="https://youtu.be/irh28e_FcYI" type="video/mp4">
     <source src="https://youtu.be/D5L9xWYBkY8" type="video/mp4">
