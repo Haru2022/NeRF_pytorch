@@ -4,7 +4,7 @@ import open3d as o3d
 import matplotlib.pyplot as plt
 from scipy.spatial import Delaunay
 import imageio
-import sys, os
+import sys, os, cv2
 
 #points = np.random.rand(10000, 3)
 #point_cloud = o3d.geometry.PointCloud()
