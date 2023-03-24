@@ -19,7 +19,7 @@ def train():
 
 
     # main process
-    for i in range(0 if int(checkpoint)==0 else int(checkpoint)+1, N_iters):
+    for i in range(0 if int(checkpoint)==0 else int(checkpoint), N_iters):
         img_i = np.random.choice(i_train)
         gt_rgb = imgs[img_i].to(args.device)
         pose = poses[img_i, :3, :4].to(args.device)

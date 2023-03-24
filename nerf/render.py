@@ -181,9 +181,9 @@ def render_test(position_embedder, view_embedder, model_coarse, model_fine, rend
         rgb = full_rgb.reshape([H, W, full_rgb.shape[-1]])
 
         if rgbs is None:
-            rgbs = rgb[None,...] 
+            rgbs = rgb[None,] 
         else:
-            rgbs = torch.cat([rgbs,rgb],0) #[imgs_num,H,W,3]
+            rgbs = torch.cat([rgbs,rgb[None,]],0) #[imgs_num,H,W,3]
 
         if obj_recon:
             pcl_rgb = torch.cat([full_pcl,full_rgb],dim=1)
