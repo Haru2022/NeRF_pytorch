@@ -52,6 +52,7 @@ def load_replica_data(args):
     step = 5
     train_ids = list(range(0, total_num, step))
     test_ids = [x + step // 2 for x in train_ids]
+    #print(train_ids, test_ids)
 
     imgs, poses, i_split = rgb_processor(args.datadir, train_ids, test_ids, testskip=args.testskip).load_rgb()
 

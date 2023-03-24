@@ -18,7 +18,6 @@ def train():
     #N_iters = 500000
     args.perturb = 1. # stratified sampling. check here
 
-    z_val_coarse = z_val_sample(args.N_train, args.near, args.far, args.N_samples)
     args.N_ins = None
    
     for i in range(0 if int(checkpoint)==0 else int(checkpoint)+1, N_iters):
@@ -28,6 +27,7 @@ def train():
 
         target_c, batch_rays = get_rays_batch_per_image(gt_rgb,K,pose,args.N_train)
 
+        z_val_coarse = z_val_sample(args.N_train, args.near, args.far, args.N_samples)
         all_info = nerf_main(batch_rays, position_embedder, view_embedder, model_coarse, model_fine, z_val_coarse, args)
 
         # coarse losses
@@ -70,7 +70,7 @@ def train():
             }
             torch.save(save_model, path)
 
-        if i % args.i_test == 0:
+        if i % args.i_test == 0 and i>0:
             model_coarse.eval()
             model_fine.eval()
             args.is_train = False
@@ -96,8 +96,11 @@ if __name__ == '__main__':
     images, poses, hwk, i_split = load_replica_data(args)
     print('Load data from', args.datadir)
 
-    i_train, i_test = i_split
     H, W, K = hwk
+    print("h,w,k:{},{},{}".format(H,W,K))
+    H,W = int(H), int(W)
+    i_train, i_test = i_split
+    print("train set: {} imgs; test set: {} imgs".format(i_train.shape[0],i_test.shape[0]))
 
     # Create nerf model
     # create nerf models

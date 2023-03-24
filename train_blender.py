@@ -72,7 +72,7 @@ def train():
             }
             torch.save(save_model, path)
 
-        if i % args.i_test == 0:
+        if i % args.i_test == 0 and i>0:
             model_coarse.eval()
             model_fine.eval()
             args.is_train = False
@@ -104,6 +104,7 @@ if __name__ == '__main__':
     print("h,w,k:{},{},{}".format(H,W,K))
     H,W = int(H), int(W)
     i_train, i_val, i_test = i_split
+    print("train set: {} imgs; test set: {} imgs".format(i_train,i_test))
     # the radius of the camera pose ==4.03
     # the obj is enclosed with a shpere with r=4
     args.near = 2.
