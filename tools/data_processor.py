@@ -73,7 +73,7 @@ def get_rays(H, W, K, c2w=None):
 
     # depth is always equals to 1, (H,W,3)
     dirs = torch.stack([(i - K[0, 2]) / K[0, 0], (j - K[1, 2]) / K[1, 1], K[2, 2] * torch.ones_like(i)], -1)
-    
+
     #dirs = dirs[..., np.newaxis] # (H,W,3,1)
     #rays_d = torch.matmul(c2w[:3, :3],dirs).squeeze(-1) # (H,W,3,1) to (H,W,3)
     rays_d = torch.sum(dirs[..., np.newaxis, :] * c2w[:3, :3], -1)
@@ -87,11 +87,11 @@ def get_rays(H, W, K, c2w=None):
     return rays_o, rays_d
 
 
-def get_rays_np(H, W, focal, c2w):
+def get_rays_np(H, W, K, c2w):
     i, j = np.meshgrid(np.arange(W, dtype=np.float32), np.arange(H, dtype=np.float32), indexing='xy')
     # the camera coords is right-up-backward. However, the generated meshgrid is right-down-forward.
     # Therefore the direction should be transformed by (1,-1,-1).
-    dirs = np.stack([(i - W * .5) / focal, -(j - H * .5) / focal, -np.ones_like(i)], -1) # depth is always equals to 1, (H,W,3)
+    dirs = np.stack([(i - K[0, 2]) / K[0, 0], (j - K[1, 2]) / K[1, 1], K[2, 2] * np.ones_like(i)], -1) # depth is always equals to 1, (H,W,3)
     # Rotate ray directions from camera frame to the world frame
     rays_d = np.sum(dirs[..., np.newaxis, :] * c2w[:3, :3], -1)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
     # Translate camera frame's origin to the world frame. It is the origin of all rays.

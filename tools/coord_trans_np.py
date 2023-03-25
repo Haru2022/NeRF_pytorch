@@ -23,7 +23,7 @@ rot_z = lambda yaw: np.array([
     [0, 0, 0, 1]])
 
 # transformation from image coordinate to pixel coordinate
-def coord_trans_img2pix(dx=1.,dy=1.,u0=None,v0=None, H=0, W=0 ,type='opencv', other_type=None):
+def coord_trans_img2pix(dx=1.,dy=1.,u0=None,v0=None, H=0, W=0 ,type=None, other_type=None):
     """transformation from image coordinate to pixel coordinate
 
         Args:
@@ -78,7 +78,7 @@ def coord_trans_cam2img(focal):
     return mtx
 
 # get the intrinsics
-def gen_intrinsics(focal, dx=1.,dy=1.,u0=None,v0=None, H=0, W=0 ,type='opencv', other_type=None):
+def gen_intrinsics(focal, dx=1.,dy=1.,u0=None,v0=None, H=0, W=0 ,type=None, other_type=None):
     """create cam intrinsics by K = img2pix @ cam2img = cam2pix
     
         Args:
@@ -164,10 +164,11 @@ def RC2T(R_cam,C_cam,type=None):
 
     return T
 
-def T_lookat(cam_pose, up, target,type=None):
+def T_lookat(cam_pose, up, target,type=None, cam_coord=None):
     """ generate the extrinsic by look-at camera 
         http://ksimek.github.io/2012/08/22/extrinsic/
-            the camera coords is opengl type
+        the default camera coords is opengl type, which means the camera coordinate
+        is left-up-backward; for opencv type: left-down-forward
 
         Args:
             inputs:
@@ -189,6 +190,12 @@ def T_lookat(cam_pose, up, target,type=None):
 
     R_cam = np.stack((x_axis,y_axis,z_axis),0).transpose()
     T = RC2T(R_cam,cam_pose,type)
+    if cam_coord is None:
+        print('please specify the type of the camera coordinate, \'opencv\' or \'opengl\'')
+        raise Exception()
+    
+    if cam_coord=='opencv':
+        T = T @ np.array([[1,0,0,0],[0,-1,0,0],[0,0,-1,0],[0,0,0,1]])
     #t = -R @ cam_pose
     #T_w2c = np.eye(4,dtype=float)
     #T_w2c[:3,:3] = R
@@ -250,7 +257,7 @@ def T_convert(T,type=None):
     return T
 
 
-def Rotation_along_axis(axis, rad):
+def rotation_along_axis(axis, rad):
 
     axis = np.array(axis,dtype=float)
     norm = axis/np.linalg.norm(axis)
@@ -265,7 +272,10 @@ def Rotation_along_axis(axis, rad):
     col_2 = np.array([n_x*n_y*(1-c)-n_z*s, n_y*n_y*(1-c)+c, n_y*n_z*(1-c)+n_x*s], dtype=float)
     col_3 = np.array([n_x*n_z*(1-c)+n_y*s, n_y*n_z*(1-c)-n_z*s, n_z*n_z*(1-c)+c], dtype=float)
 
-    T = np.stack([col_1,col_2,col_3],axis=-1)
+    R = np.stack([col_1,col_2,col_3],axis=-1)
+
+    T = np.eye(4,dtype=float)
+    T[:3,:3] = R
 
     #print(np.stack([[1,0,0],[1,2,0],[1,0,3]],axis=-1))
 
@@ -273,3 +283,7 @@ def Rotation_along_axis(axis, rad):
 
 #print(Rotation_along_axis([1,1,1],np.pi))
 
+def cam_transform_c2w(delta_R, delta_C, T_c2w):
+
+    R_cam = T_c2w[:3,:3]
+    #TODO

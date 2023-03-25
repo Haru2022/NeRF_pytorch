@@ -98,7 +98,7 @@ def load_blender_data(basedir, resize_factor, testskip=1, white_bkgd=False):
 
     #render_poses = torch.stack([pose_spherical(angle, -30.0, 4.0) for angle in np.linspace(-180,180,40+1)[:-1]],0)
 
-    render_poses = torch.tensor(render_pose_circle([0,0,0],4,np.pi/6,40)).float()
+    render_poses = torch.tensor(render_pose_circle([0,0,0],4,np.pi/6,40,'opengl')).float()
     
     if resize_factor != 1.:
         #cv2.imshow('raw',imgs[0])

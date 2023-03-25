@@ -10,52 +10,66 @@ from tools.coord_trans_np import gen_intrinsics
 np.random.seed(0)
 
 
-class rgb_processor:
+class data_processor:
     def __init__(self, basedir, train_ids, test_ids, testskip=1):
-        super(rgb_processor, self).__init__()
+        super(data_processor, self).__init__()
         self.basedir = basedir
         self.testskip = testskip
         self.train_ids = train_ids
         self.test_ids = test_ids
+        self.traj_file = os.path.join(self.basedir, 'traj_w_c.txt')
+        self.Ts_full = np.loadtxt(self.traj_file, delimiter=" ").reshape(-1, 4, 4)
 
-    def load_rgb(self):
+    def load_data(self, type):
         # testskip operation
         skip_idx = np.arange(0, len(self.test_ids), self.testskip)
 
         # load poses
-        traj_file = os.path.join(self.basedir, 'traj_w_c.txt')
-        Ts_full = np.loadtxt(traj_file, delimiter=" ").reshape(-1, 4, 4)
-        train_poses = Ts_full[self.train_ids]
-        test_poses = Ts_full[self.test_ids]
+        train_poses = self.Ts_full[self.train_ids]
+        test_poses = self.Ts_full[self.test_ids]
         test_poses = test_poses[skip_idx]
         poses = np.concatenate([train_poses, test_poses], axis=0)
 
-        # load rgbs
-        rgb_basedir = os.path.join(self.basedir, 'rgb')
-        train_rgbs = [imageio.imread(os.path.join(rgb_basedir, f'rgb_{idx}.png')) for idx in self.train_ids]
-        test_rgbs = [imageio.imread(os.path.join(rgb_basedir, f'rgb_{idx}.png')) for idx in self.test_ids]
-        train_rgbs = np.array(train_rgbs)
-        test_rgbs = np.array(test_rgbs)[skip_idx]
-        rgbs = np.concatenate([train_rgbs, test_rgbs], axis=0)
-        rgbs = (rgbs / 255.).astype(np.float32)
+        # load data
+        data_basedir = os.path.join(self.basedir, type)
+        train_data = [imageio.imread(os.path.join(data_basedir, f'{type}_{idx}.png')) for idx in self.train_ids]
+        test_data = [imageio.imread(os.path.join(data_basedir, f'{type}_{idx}.png')) for idx in self.test_ids]
+        train_data = np.array(train_data)
+        test_data = np.array(test_data)[skip_idx]
+        if test_data.shape[0]>0 and train_data.shape[0]>0:
+            data = np.concatenate([train_data, test_data], axis=0)
+        elif test_data.shape[0]==0 and train_data.shape[0]>0:
+            data = train_data
+        elif test_data.shape[0]>0 and train_data.shape[0]==0:
+            data = test_data
+        else:
+            print('Error: no data is loaded.')
+            raise Exception()
+        
+
+        if type=='rgb':
+            data = (data / 255.).astype(np.float32) # 0-255 to 0-1
+        elif type=='depth':
+            data = (data / 1000.).astype(np.float32) # metric from millimeter to meter
+        elif type=='ins_seg':
+            #TODO
+            1
 
         i_train = np.arange(0, len(self.train_ids), 1)
         i_test = np.arange(len(self.train_ids), len(self.train_ids) + len(skip_idx), 1)
         i_split = [i_train, i_test]
 
-        return rgbs, poses, i_split
+        return data, poses, i_split
+    
 
 
-def load_replica_data(args):
-    # load color image RGB
-    total_num = 900
-    step = 5
-    train_ids = list(range(0, total_num, step))
-    test_ids = [x + step // 2 for x in train_ids]
-    #print(train_ids, test_ids)
 
-    imgs, poses, i_split = rgb_processor(args.datadir, train_ids, test_ids, testskip=args.testskip).load_rgb()
+def load_replica_data(args, train_ids, test_ids, data_type='rgb'):
+    # load data
 
+    data_loader = data_processor(args.datadir, train_ids, test_ids, args.testskip)
+
+    imgs, poses, i_split =  data_loader.load_data(data_type)
 
     H, W = imgs[0].shape[:2]
 

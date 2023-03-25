@@ -93,7 +93,11 @@ if __name__ == '__main__':
     args, logdir, checkpoint = initial()
 
     # load data
-    images, poses, hwk, i_split = load_replica_data(args)
+    total_num = 900
+    step = 1
+    train_ids = list(range(0, total_num, step))
+    test_ids = [x + step // 2 for x in train_ids]
+    images, poses, hwk, i_split = load_replica_data(args,train_ids,test_ids,'rgb')
     print('Load data from', args.datadir)
 
     H, W, K = hwk

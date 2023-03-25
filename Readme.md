@@ -29,9 +29,9 @@ The mg2c in the last version is integrated into the process of intrinsics genera
 - The evaluation metrics compared with that in the paper
     | dataset_code_iters  | PSNR  | SSIM   | LPIPS  |
     |---|---|---|---|
-    | synthetic_lego_haru_200K  |  30.4273 |0.9572 |0.0388 |
+    | synthetic_lego_haru_200K (resize:50%)  |  30.43 |0.957 |0.039 |
     | synthetic_lego_nerf_500K  |  32.54 |0.961 |0.050 |
-    | synthetic_hotdog_haru_200K  |  34.8165 |0.9664 |0.0477 |
+    | synthetic_hotdog_haru_200K (full size)  |  34.82 |0.966 |0.048 |
     | synthetic_hotdog_nerf_500K  |  36.18 |0.974 | 0.121 |
     ||||
 
@@ -39,4 +39,34 @@ The mg2c in the last version is integrated into the process of intrinsics genera
     <div align=center><img src="./readme_visual/rgb_lego.gif" width="50%"><img src="./readme_visual/rgb_hotdog.gif" width="50%"></div>
     
 - [Pointcloud](https://youtu.be/Vi1iftw7FQQ), [voxel](https://youtu.be/irh28e_FcYI) and [mesh](https://youtu.be/D5L9xWYBkY8) of the lego dataset
+
+25 Mar 2023 v1.1
+- The camera coordinate type should be **explicitly claimed** like 'opencv' or 'opengl' when using all the functions in coord_trans_np.py to avoid coordinate inconsistency.
+- Testing the network on Replica dataset room_1. The depth and rgb imgs are obtained from [Semantic-NeRF](https://github.com/Harry-Zhi/semantic_nerf)
+
+    | dataset_code_iters  | PSNR  | SSIM   | LPIPS  |
+    |---|---|---|---|
+    | replica_room1_haru_200K  |  32.87 |0.899 |0.173 |
+    | replica_room1_[DM-Nerf](https://github.com/vLAR-group/DM-NeRF)_500K  |  34.72 |0.931 | 0.134 |
+    ||||
+
+
+*the following visualization is implemented with resize factor=0.5. But there is **no resize operation** when training.
+- Visualization about the synthetic views:
+    <div align=center><img src="./readme_visual/room1/rgb_room1.gif" width="50%"></div>
+    *Note that this path will be optimized after. Now it's just a combination of several marching pathes looking at a fix point.*
+
+- Ground-Truth and predicted pointcloud of dataset Replica_room1:
+    <div align=center><img src="./readme_visual/room1/gt_pcl2.png" width="50%"><img src="./readme_visual/room1/gt_pcl1.png" width="50%"></div>
+    <center>Ground Truth Pointcloud<center>
+    <div align=center><img src="./readme_visual/room1/pred_pcl1.png" width="50%"><img src="./readme_visual/room1/pred_pcl2.png" width="50%"></div>
+    <center>Predicted Pointcloud<center>
+    <div align=center><img src="./readme_visual/room1/gt_voxel2.png" width="50%"><img src="./readme_visual/room1/gt_voxel1.png" width="50%"></div>
+    <center>Ground Truth Voxel<center>
+    <div align=center><img src="./readme_visual/room1/pred_voxel1.png" width="50%"><img src="./readme_visual/room1/pred_voxel2.png" width="50%"></div>
+    <center>Predicted Voxel (after outlier removal)<center>
+    <div align=center><img src="./readme_visual/room1/pred_mesh1.png" width="50%"><img src="./readme_visual/room1/pred_mesh2.png" width="50%"></div>
+    <center>Predicted Mesh<center>
+
+    
 
