@@ -58,15 +58,15 @@ The mg2c in the last version is integrated into the process of intrinsics genera
 
 - Ground-Truth and predicted pointcloud of dataset Replica_room1:
     <div align=center><img src="./readme_visual/room1/gt_pcl2.png" width="50%"><img src="./readme_visual/room1/gt_pcl1.png" width="50%"></div>
-    <center>Ground Truth Pointcloud<center>
+    <center>Ground Truth Pointcloud</center>
     <div align=center><img src="./readme_visual/room1/pred_pcl1.png" width="50%"><img src="./readme_visual/room1/pred_pcl2.png" width="50%"></div>
-    <center>Predicted Pointcloud<center>
+    <center>Predicted Pointcloud</center>
     <div align=center><img src="./readme_visual/room1/gt_voxel2.png" width="50%"><img src="./readme_visual/room1/gt_voxel1.png" width="50%"></div>
-    <center>Ground Truth Voxel<center>
+    <center>Ground Truth Voxel</center>
     <div align=center><img src="./readme_visual/room1/pred_voxel1.png" width="50%"><img src="./readme_visual/room1/pred_voxel2.png" width="50%"></div>
-    <center>Predicted Voxel (after outlier removal)<center>
+    <center>Predicted Voxel (after outlier removal)</center>
     <div align=center><img src="./readme_visual/room1/pred_mesh1.png" width="50%"><img src="./readme_visual/room1/pred_mesh2.png" width="50%"></div>
-    <center>Predicted Mesh<center>
+    <center>Predicted Mesh</center>
 
     
 
