@@ -37,14 +37,18 @@ The mg2c in the last version is integrated into the process of intrinsics genera
 
 - Visualization about the syhthetic views:
     <div align=center><img src="./readme_visual/rgb_lego.gif" width="50%"><img src="./readme_visual/rgb_hotdog.gif" width="50%"></div>
+
 - Visualization about the pointcloud and mesh
     <div align=center>
     <img src="./readme_visual/lego/haru_lego_pcl.png" width="60%">
     <center>Predicted pointcloud with simple outlier removal</center>
+
     <img src="./readme_visual/lego/gt_lego_mesh.jpg" width="60%">
     <center>Ground truth 3D structure</center>
+
     <img src="./readme_visual/lego/haru_lego_mesh_gray.png" width="60%">
     <center>Predicted mesh (gray version)</center>
+    
     <img src="./readme_visual/lego/haru_lego_mesh_color.png" width="60%">
     <center>Predicted mesh (color version)</center>
     </div>
