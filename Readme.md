@@ -40,6 +40,7 @@ The mg2c in the last version is integrated into the process of intrinsics genera
 
 - Visualization about the pointcloud and mesh
     <div align=center>
+
     <img src="./readme_visual/lego/haru_lego_pcl.png" width="60%"><center>Predicted pointcloud with simple outlier removal</center>
 
     <img src="./readme_visual/lego/gt_lego_mesh.jpg" width="60%"><center>Ground truth 3D structure</center>
@@ -70,16 +71,16 @@ The mg2c in the last version is integrated into the process of intrinsics genera
     *Note that this path will be optimized after. Now it's just a combination of several marching pathes looking at a fix point.*
 
 - Ground-Truth and predicted pointcloud of dataset Replica_room1:
-    <div align=center><img src="./readme_visual/room1/gt_pcl2.png" width="50%"><img src="./readme_visual/room1/gt_pcl1.png" width="50%"></div>
-    <center>Ground Truth Pointcloud</center>
-    <div align=center><img src="./readme_visual/room1/pred_pcl1.png" width="50%"><img src="./readme_visual/room1/pred_pcl2.png" width="50%"></div>
-    <center>Predicted Pointcloud</center>
-    <div align=center><img src="./readme_visual/room1/gt_voxel2.png" width="50%"><img src="./readme_visual/room1/gt_voxel1.png" width="50%"></div>
-    <center>Ground Truth Voxel</center>
-    <div align=center><img src="./readme_visual/room1/pred_voxel1.png" width="50%"><img src="./readme_visual/room1/pred_voxel2.png" width="50%"></div>
-    <center>Predicted Voxel (after outlier removal)</center>
-    <div align=center><img src="./readme_visual/room1/pred_mesh1.png" width="50%"><img src="./readme_visual/room1/pred_mesh2.png" width="50%"></div>
-    <center>Predicted Mesh</center>
+    <div align=center><img src="./readme_visual/room1/gt_pcl2.png" width="50%"><img src="./readme_visual/room1/gt_pcl1.png" width="50%"><center>Ground Truth Pointcloud</center></div>
+   
+    <div align=center><img src="./readme_visual/room1/pred_pcl1.png" width="50%"><img src="./readme_visual/room1/pred_pcl2.png" width="50%"> <center>Predicted Pointcloud</center></div>
+   
+    <div align=center><img src="./readme_visual/room1/gt_voxel2.png" width="50%"><img src="./readme_visual/room1/gt_voxel1.png" width="50%"><center>Ground Truth Voxel</center></div>
+    
+    <div align=center><img src="./readme_visual/room1/pred_voxel1.png" width="50%"><img src="./readme_visual/room1/pred_voxel2.png" width="50%"><center>Predicted Voxel (after outlier removal)</center></div>
+    
+    <div align=center><img src="./readme_visual/room1/pred_mesh1.png" width="50%"><img src="./readme_visual/room1/pred_mesh2.png" width="50%"><center>Predicted Mesh</center></div>
+    
 
     
 
