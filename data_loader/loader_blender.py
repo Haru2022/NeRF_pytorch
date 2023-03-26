@@ -54,6 +54,8 @@ def load_blender_data(basedir, resize_factor, testskip=1, white_bkgd=False):
 
     all_imgs = []
     all_poses = []
+    depth_imgs = []
+    normal_imgs = []
     counts = [0]
     for s in splits:
         meta = metas[s]
@@ -70,9 +72,20 @@ def load_blender_data(basedir, resize_factor, testskip=1, white_bkgd=False):
             imgs.append(imageio.imread(fname))
             poses.append(np.array(frame['transform_matrix']))
             #print(np.array(frame['transform_matrix']))
+            if s == 'test':
+                depth_file = os.path.join(basedir, frame['file_path'] + '_depth_0001' + '.png')
+                normal_file = os.path.join(basedir, frame['file_path'] + '_normal_0001' + '.png')
+                #print(fname,depth_file,normal_file)
+                depth_img = imageio.imread(depth_file)
+                normal_img = imageio.imread(normal_file)
+                depth_imgs.append(depth_img[...,0])
+                normal_imgs.append(normal_img[...,:3])
 
         imgs = (np.array(imgs) / 255.).astype(np.float32) # keep all 4 channels (RGBA)
         poses = np.array(poses).astype(np.float32)
+        if s == 'test':
+            depth_imgs = (((255-np.array(depth_imgs))/255.)*7.2).astype(np.float32) # this depth is incorrect
+            normal_imgs = (np.array(normal_imgs) / 255.).astype(np.float32)
         counts.append(counts[-1] + imgs.shape[0])
         all_imgs.append(imgs)
         all_poses.append(poses)
@@ -114,7 +127,7 @@ def load_blender_data(basedir, resize_factor, testskip=1, white_bkgd=False):
     K = gen_intrinsics(focal=focal,H=H,W=W,type='opengl')
     
         
-    return imgs, poses, render_poses, [H, W, K], i_split
+    return imgs, poses, render_poses, [H, W, K], i_split, depth_imgs, normal_imgs
 
 
 #basedir = "H:\DM-NeRF-main\data/nerf_synthetic/lego"

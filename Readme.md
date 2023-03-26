@@ -37,8 +37,19 @@ The mg2c in the last version is integrated into the process of intrinsics genera
 
 - Visualization about the syhthetic views:
     <div align=center><img src="./readme_visual/rgb_lego.gif" width="50%"><img src="./readme_visual/rgb_hotdog.gif" width="50%"></div>
+- Visualization about the pointcloud and mesh
+    <div align=center>
+    <img src="./readme_visual/lego/haru_lego_pcl.png" width="60%">
+    <center>Predicted pointcloud with simple outlier removal</center>
+    <img src="./readme_visual/lego/gt_lego_mesh.jpg" width="60%">
+    <center>Ground truth 3D structure</center>
+    <img src="./readme_visual/lego/haru_lego_mesh_gray.png" width="60%">
+    <center>Predicted mesh (gray version)</center>
+    <img src="./readme_visual/lego/haru_lego_mesh_color.png" width="60%">
+    <center>Predicted mesh (color version)</center>
+    </div>
     
-- [Pointcloud](https://youtu.be/Vi1iftw7FQQ), [voxel](https://youtu.be/irh28e_FcYI) and [mesh](https://youtu.be/D5L9xWYBkY8) of the lego dataset
+- Videos about [Pointcloud](https://youtu.be/Vi1iftw7FQQ), [voxel](https://youtu.be/irh28e_FcYI) and [mesh](https://youtu.be/D5L9xWYBkY8) of the lego dataset
 
 25 Mar 2023 v1.1
 - The camera coordinate type should be **explicitly claimed** like 'opencv' or 'opengl' when using all the functions in coord_trans_np.py to avoid coordinate inconsistency.
@@ -48,6 +59,8 @@ The mg2c in the last version is integrated into the process of intrinsics genera
     |---|---|---|---|
     | replica_room1_haru_200K  |  32.87 |0.899 |0.173 |
     | replica_room1_[DM-Nerf](https://github.com/vLAR-group/DM-NeRF)_500K  |  34.72 |0.931 | 0.134 |
+    | replica_room0_haru_100K(under update)  |  30.80 |0.880 |0.216 |
+    | replica_room1_DM-Nerf_500K  |  34.97 |0.940 | 0.127 |
     ||||
 
 

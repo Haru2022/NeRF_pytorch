@@ -7,6 +7,7 @@ from configs.configs_loader import initial
 from data_loader.loader_blender import load_blender_data
 from nerf.nerf_constructor import get_embedder, NeRF
 from nerf.render import render_test
+from tools.data_processor import get_rays_np
 import imageio
 
 
@@ -14,11 +15,47 @@ def test():
     model_coarse.eval()
     model_fine.eval()
     args.is_train = False
-
+    pcl_rgb_normal_gt = None
     pcl_rgb_valids, rgbs = None, None
     visual_dir = os.path.join(args.basedir, args.expname, args.log_time,'visualization')
     os.makedirs(visual_dir,exist_ok=True)
+    
+    # get ground truth pcl
+    if reload_gt:
+        count = len(i_train) + len(i_val)
+        #print(poses.shape,imgs.shape, count)
+        for idx in range(0,len(i_test)):
+            print('Ground Truth Collecting: Loading img {}'.format(i_test[idx]))
+            depth = depth_imgs[idx]
+            normal = normal_imgs[idx]
+            pose_test = poses[count+idx]
+            rays_o, rays_d = get_rays_np(H,W,K,pose_test) #(H,W,3)
+
+            # reshape data
+            rays_o = np.reshape(rays_o, [-1,3]) #(HxW,3)
+            rays_d = np.reshape(rays_d, [-1,3]) #(HxW,3)
+            depth = np.reshape(depth, [-1,1]) #(HxW,1)
+            normal = np.reshape(normal,[-1,3]) #(HxW,3)
+            rgb = np.broadcast_to(np.array([0.5,0.5,0.5], dtype=float), np.shape(rays_d))
+            # pcl_rgb concatenate
+            pts = rays_o + rays_d * np.broadcast_to(depth,np.shape(rays_d)) #(HxW,3)
+            pcl_rgb_normal_gt_local = np.concatenate((pts, rgb, normal), -1)
+
+            if pcl_rgb_normal_gt is None:
+                pcl_rgb_normal_gt = pcl_rgb_normal_gt_local
+            else:
+                pcl_rgb_normal_gt = np.concatenate((pcl_rgb_normal_gt,pcl_rgb_normal_gt_local),0)
+    
+    np.save(os.path.join(visual_dir,'{}_gt.npy'.format(args.expname)),pcl_rgb_normal_gt,'wb')
+    print('Save the ground truth pointcloud with normal info.')
+
     # main process
+
+    # move data to gpu
+    #imgs = torch.Tensor(imgs).cpu()
+    #poses = torch.Tensor(poses).cpu()
+    #render_poses = torch.Tensor(render_poses).to(args.device)
+
     with torch.no_grad():
         print('Rendering......')
         #print(render_poses.shape)
@@ -59,11 +96,13 @@ if __name__ == '__main__':
     args, logdir, checkpoint = initial()
 
     # load data
-    imgs, poses, render_poses, hwK, i_split = load_blender_data(args.datadir, args.resize_factor, args.testskip, args.white_bkgd)
+    imgs, poses, render_poses, hwK, i_split, depth_imgs, normal_imgs = load_blender_data(args.datadir, args.resize_factor, args.testskip, args.white_bkgd)
     H,W,K = hwK
     print("h,w,k:{},{},{}".format(H,W,K))
     H,W = int(H), int(W)
     i_train, i_val, i_test = i_split
+    #print(i_val, i_test)
+    reload_gt = False
     # the radius of the camera pose ==4.03
     # the obj is enclosed with a shpere with r=4
     args.near = 2.
@@ -85,10 +124,10 @@ if __name__ == '__main__':
     model_fine.load_state_dict(ckpt['network_fine_state_dict'])
 
     # move data to gpu
-    imgs = torch.Tensor(imgs).cpu()
-    poses = torch.Tensor(poses).cpu()
-    render_poses = torch.Tensor(render_poses).to(args.device)
-    K = torch.Tensor(K).to(args.device)
+    #imgs = torch.Tensor(imgs).cpu()
+    #poses = torch.Tensor(poses).cpu()
+    #render_poses = torch.Tensor(render_poses).to(args.device)
+    #K = torch.Tensor(K).to(args.device)
 
     test()
     

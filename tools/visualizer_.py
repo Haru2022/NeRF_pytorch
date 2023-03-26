@@ -34,14 +34,16 @@ def display_inlier_outlier(cloud, ind):
     inlier_cloud.paint_uniform_color([0.8, 0.8, 0.8])
     o3d.visualization.draw_geometries([inlier_cloud])
 
-def pcd_gen(source_pts,source_rgb):
+def pcd_gen(source_pts,source_rgb,source_normal=None):
     points = source_pts
     point_cloud = o3d.geometry.PointCloud()
     point_cloud.points = o3d.utility.Vector3dVector(points)
     point_cloud.colors = o3d.utility.Vector3dVector(source_rgb)
+    if source_normal is not None:
+        point_cloud.normals = o3d.utility.Vector3dVector(source_normal)
     point_cloud.remove_duplicated_points()
     o3d.visualization.draw_geometries([point_cloud])
-    point_cloud = point_cloud.voxel_down_sample(voxel_size=0.005) # voxel for mesh
+    point_cloud = point_cloud.voxel_down_sample(voxel_size=0.001) # voxel for mesh
     #o3d.visualization.draw_geometries([point_cloud])
     #cl, ind = point_cloud.remove_radius_outlier(nb_points=5, radius=0.01) # outlier removal
     cl, ind =point_cloud.remove_statistical_outlier(nb_neighbors=20, std_ratio=1.0)
@@ -57,13 +59,14 @@ def pcd_gen(source_pts,source_rgb):
     
     # generate mesh from pcd alpha
     tetra_mesh, pt_map = o3d.geometry.TetraMesh.create_from_point_cloud(point_cloud)
-    alpha = 0.01
+    alpha = 0.006
     print(f"alpha={alpha:.3f}")
     mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_alpha_shape(
         point_cloud, alpha, tetra_mesh, pt_map)
     mesh.compute_vertex_normals()
     mesh = mesh.filter_smooth_simple(number_of_iterations=1)
-    #mesh.compute_vertex_normals()
+    #mesh.paint_uniform_color([0.5,0.5,0.5])
+    mesh.compute_vertex_normals()
     o3d.visualization.draw_geometries([mesh], mesh_show_back_face=True)
 
 
@@ -87,15 +90,21 @@ def pcd_gen(source_pts,source_rgb):
     #o3d.visualization.draw_geometries([mesh])
 
 def test():
-    #data = np.load('./logs/blender/lego/lego_train/202303221805/visualization/obj_resize_0.5.npy')
+    data = np.load('./logs/blender/lego/lego_train/202303221805/visualization/obj_resize_0.5.npy')
+    #data = np.load('./logs/blender/lego/lego_train/202303221805/visualization/lego_train_gt.npy')
     #data = np.load('./logs/replica/room_1/202303241857/visualization/room_1_gt.npy')
-    data = np.load('./logs/replica/room_1/202303241857/visualization/obj_resize_0.5.npy')
+    #data = np.load('./logs/replica/room_1/202303241857/visualization/obj_resize_0.5.npy')
     #data = np.load('./logs/blender/hotdog/hotdog_train/202303231012/visualization/obj_resize_0.2.npy')
 
     pts = data[...,:3]
     z_min = np.min(pts[...,2])
     print(z_min)
-    color = data[...,3:]
-    pcd_gen(pts,color)
+    color = data[...,3:6]
+    #color[:,:] = 192/255. 
+    if data.shape[1]>6:
+        normal = data[...,6:]
+    else:
+        normal = None
+    pcd_gen(pts,color,normal)
 
-test()
+#test()
