@@ -60,7 +60,7 @@ The mg2c in the last version is integrated into the process of intrinsics genera
     |---|---|---|---|
     | replica_room1_haru_200K  |  32.87 |0.899 |0.173 |
     | replica_room1_[DM-Nerf](https://github.com/vLAR-group/DM-NeRF)_500K  |  34.72 |0.931 | 0.134 |
-    | replica_room0_haru_100K(under update)  |  30.80 |0.880 |0.216 |
+    | replica_room0_haru_120K(under update)  |  32.87 |0.919 |0.170 |
     | replica_room0_DM-Nerf_500K  |  34.97 |0.940 | 0.127 |
     ||||
 
