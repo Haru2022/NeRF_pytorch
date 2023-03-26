@@ -54,14 +54,14 @@ The mg2c in the last version is integrated into the process of intrinsics genera
 
 25 Mar 2023 v1.1
 - The camera coordinate type should be **explicitly claimed** like 'opencv' or 'opengl' when using all the functions in coord_trans_np.py to avoid coordinate inconsistency.
-- Testing the network on Replica dataset room_1. The depth and rgb imgs are obtained from [Semantic-NeRF](https://github.com/Harry-Zhi/semantic_nerf)
+- Testing the network on Replica dataset room_1 and room_0. The depth and rgb imgs are obtained from [Semantic-NeRF](https://github.com/Harry-Zhi/semantic_nerf)
 
     | dataset_code_iters  | PSNR  | SSIM   | LPIPS  |
     |---|---|---|---|
     | replica_room1_haru_200K  |  32.87 |0.899 |0.173 |
     | replica_room1_[DM-Nerf](https://github.com/vLAR-group/DM-NeRF)_500K  |  34.72 |0.931 | 0.134 |
     | replica_room0_haru_100K(under update)  |  30.80 |0.880 |0.216 |
-    | replica_room1_DM-Nerf_500K  |  34.97 |0.940 | 0.127 |
+    | replica_room0_DM-Nerf_500K  |  34.97 |0.940 | 0.127 |
     ||||
 
 
