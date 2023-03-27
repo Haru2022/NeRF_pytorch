@@ -99,7 +99,7 @@ if __name__ == '__main__':
     args, logdir, checkpoint = initial()
 
     # load data
-    imgs, poses, render_poses, hwK, i_split = load_blender_data(args.datadir, args.resize_factor, args.testskip, args.white_bkgd)
+    imgs, poses, render_poses, hwK, i_split,_,_ = load_blender_data(args.datadir, args.resize_factor, args.testskip, args.white_bkgd)
     H,W,K = hwK
     print("h,w,k:{},{},{}".format(H,W,K))
     H,W = int(H), int(W)

@@ -60,7 +60,7 @@ The mg2c in the last version is integrated into the process of intrinsics genera
     |---|---|---|---|
     | replica_room1_haru_200K  |  32.87 |0.899 |0.173 |
     | replica_room1_[DM-Nerf](https://github.com/vLAR-group/DM-NeRF)_500K  |  34.72 |0.931 | 0.134 |
-    | replica_room0_haru_120K(under update)  |  32.87 |0.919 |0.170 |
+    | replica_room0_haru_200K     |  33.24 |0.915 |0.167 |
     | replica_room0_DM-Nerf_500K  |  34.97 |0.940 | 0.127 |
     ||||
 
@@ -80,7 +80,15 @@ The mg2c in the last version is integrated into the process of intrinsics genera
     <div align=center><img src="./readme_visual/room1/pred_voxel1.png" width="50%"><img src="./readme_visual/room1/pred_voxel2.png" width="50%"><center>Predicted Voxel (after outlier removal)</center></div>
     
     <div align=center><img src="./readme_visual/room1/pred_mesh1.png" width="50%"><img src="./readme_visual/room1/pred_mesh2.png" width="50%"><center>Predicted Mesh</center></div>
+
+27 Mar 2023 v1.1
+- Visualization on room_0
+
+    <div align=center><img src="./readme_visual/room0/rgb_room0.gif" width="50%"><center>Synthetic Views</center></div>
+
+    <div align=center><img src="./readme_visual/room0/gt_pcl2.png" width="50%"><img src="./readme_visual/room0/gt_pcl1.png" width="50%"><center>Ground Truth Pointcloud</center></div>
     
+    <div align=center><img src="./readme_visual/room0/pred_pcl1.png" width="50%"><img src="./readme_visual/room0/pred_pcl2.png" width="50%"><center>Predicted Pointcloud</center></div>
 
     
 

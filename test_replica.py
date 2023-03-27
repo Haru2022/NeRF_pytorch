@@ -22,10 +22,10 @@ def test():
     os.makedirs(visual_dir,exist_ok=True)
 
     # get ground truth pcl
-    bds = np.array([[-5.4025796,1.24342659],[-3.0360394,2.68781675],[-1.40633904,1.34493595]], dtype=float)
+    #bds = np.array([[-5.4025796,1.24342659],[-3.0360394,2.68781675],[-1.40633904,1.34493595]], dtype=float)
     if reload_gt:
         for idx in range(0,len(train_ids)):
-            #print('load data from img_{}'.format(train_ids[idx]))
+            print('load data from img_{}'.format(train_ids[idx]))
             img = imgs[idx] #(H,W,3)
             depth = depths[idx] #(H,W,1)
             pose = poses[idx]
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     step = 5
     train_ids = list(range(0, total_num, step))
     test_ids = []
-    reload_gt = False
+    reload_gt = True
     imgs, poses, hwk, i_split = load_replica_data(args,train_ids,test_ids,'rgb')
     depths, _, _, _ = load_replica_data(args,train_ids,test_ids,'depth') # in meters
     print('Load data from', args.datadir)
