@@ -4,6 +4,7 @@
 - update the coordinate transformation tool. All the input and output of the functions are uniformly defined in $4\times4$ homogeneous transformation form.
 - Remove the blackpoint that comes from the zero-depth pixels with all rgbs=[0,0,0] in the grund truch pointcloud.
      <div align=center><img src="./readme_visual/room0/gt_pcl_blackpoint_removal.png" width="50%"><center>Ground Truth Pointcloud after zero-depth points removal</center></div>
+     
 **27 Mar 2023 v1.1**
 - Visualization on room_0
 
