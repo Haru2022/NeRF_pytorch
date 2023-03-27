@@ -41,7 +41,7 @@ def coord_trans_img2pix(dx=1.,dy=1.,u0=None,v0=None, H=0, W=0 ,type=None, other_
     """
 
     # the transformation matrix is [1/dx, 0, W/2; 0, 1/dy, H/2; 0,0,1] if u0 and v0 are not defined.
-    mtx = np.eye(3,dtype=float)
+    mtx = np.eye(4,dtype=float)
     mtx[0,0] = 1./dx
     mtx[1,1] = 1./dy
     if u0 is None and v0 is None:
@@ -67,15 +67,45 @@ def coord_trans_img2pix(dx=1.,dy=1.,u0=None,v0=None, H=0, W=0 ,type=None, other_
 #print(coord_trans_img2pix(H=500,W=600,type='other',other_type=[[-1,0,0],[0,1,0],[0,0,-1]]))
 #print(coord_trans_img2pix(H=500,W=600,type='openg'))
 
+
 # transformation matrix from camera coord to image coord
-def coord_trans_cam2img(focal):
+def coord_trans_cam2img(focal_x, focal_y):
     """transformation from camera coordinate to image coordinate.\n
         z_cam * p_img_norm = trans_cam2img * p_cam
     """ 
-    mtx = np.eye(3,dtype=float)
-    mtx[0,0] = focal
-    mtx[1,1] = focal
+    mtx = np.eye(4,dtype=float)
+    mtx[0,0] = focal_x
+    mtx[1,1] = focal_y
     return mtx
+
+
+# transformation from world coordinates to the camera coordinates
+def coord_trans_world2cam(R_cam,C_cam,type=None):
+    """create world-to-camera or camera-to-world transformation matrix by
+       the rotation and center of the camera in world coordinates.
+
+       Args:
+            R_cam: rotation matrix describing the cam's orientation w.r.t the world coords
+            C_cam: the camera cneter in the world coords
+            type: (w2c or c2w) return the transformation from world to camera coords or inversely.
+
+    """
+    T = np.eye(4,dtype=float)
+    R_cam = np.array(R_cam,dtype=float)
+    C_cam = np.array(C_cam,dtype=float)
+
+    if type == 'w2c':# world to camera
+        T[:3,:3] = R_cam.transpose()
+        T[:3,3] = -R_cam.transpose() @ C_cam
+    elif type == 'c2w':# camera to world
+        T[:3,:3] = R_cam
+        T[:3,3] = C_cam
+    else:
+        print("Error: please specify the T type \'w2c\' or \'c2w\'")
+        raise Exception()
+
+    return T
+
 
 # get the intrinsics
 def gen_intrinsics(focal, dx=1.,dy=1.,u0=None,v0=None, H=0, W=0 ,type=None, other_type=None):
@@ -96,7 +126,7 @@ def gen_intrinsics(focal, dx=1.,dy=1.,u0=None,v0=None, H=0, W=0 ,type=None, othe
             focal: the focal length of the camera
     """
 
-    cam2img = coord_trans_cam2img(focal)
+    cam2img = coord_trans_cam2img(focal,focal)
     img2pix = coord_trans_img2pix(dx, dy, u0, v0, H, W, type, other_type)
 
     intrinsics = img2pix @ cam2img
@@ -127,42 +157,12 @@ def world2pix_decompose(intrinsic, T_w2p):
         output: R, c. 3x3 rotation matrix and 3x1 camera center w.r.f the world coordinate
     """
     T_w2p = np.array(T_w2p,dtype=float)
-    if T_w2p.shape[0] == 4:
-        buffer = np.eye(4,dtype=float)
-        buffer[:3,:3] = intrinsic
-        intrinsic = buffer
     T_w2c = np.linalg.inv(intrinsic) @ T_w2p
     R, cam_pose = extrinsic_decompose(T_w2c)
 
     return R, cam_pose
 
 #print(world2pix_decompose(np.eye(3,dtype=float),[[-1,0,0,2],[0,1,0,1],[0,0,-1,1],[0,0,0,1]]))
-
-def RC2T(R_cam,C_cam,type=None):
-    """create world-to-camera or camera-to-world transformation matrix by
-       the rotation and center of the camera in world coordinates.
-
-       Args:
-            R_cam: rotation matrix describing the cam's orientation w.r.t the world coords
-            C_cam: the camera cneter in the world coords
-            trans_w2c: return the transformation from world to camera coords or inversely.
-
-    """
-    T = np.eye(4,dtype=float)
-    R_cam = np.array(R_cam,dtype=float)
-    C_cam = np.array(C_cam,dtype=float)
-
-    if type == 'w2c':# world to camera
-        T[:3,:3] = R_cam.transpose()
-        T[:3,3] = -R_cam.transpose() @ C_cam
-    elif type == 'c2w':# camera to world
-        T[:3,:3] = R_cam
-        T[:3,3] = C_cam
-    else:
-        print("Error: please specify the T type \'w2c\' or \'c2w\'")
-        raise Exception()
-
-    return T
 
 def T_lookat(cam_pose, up, target,type=None, cam_coord=None):
     """ generate the extrinsic by look-at camera 
@@ -173,14 +173,21 @@ def T_lookat(cam_pose, up, target,type=None, cam_coord=None):
         Args:
             inputs:
                 cam_pose: the camerea pos in the world coordinate
-                up: the +y direction of the camera coord
-                target: the target point that the camera is looking at
+                up: the +y direction of the camera coord in the world coordiante
+                target: the target point that the camera is looking at in the world coordiante
+                cam_coord: the type of the camera coordinate, 'opencv' or 'opengl'
+                type: the output type, 'w2c' means the transformation from world to camera, 'c2w' means inverse transformation
             outputs:
-                R_3x3: camera totation matrix
-                t_3x1: translation part from world to camera coord
-                T_w2c: transformation matrix from world to camera coord = [R,t;0,1]
+                T: the transformation from world to camera or inverse. (defined by the arg 'type')
     """
 
+    if type is None:
+        print("Error: please specify the transformation type \'w2c\' or \'c2w\' into the arg 'type'")
+        raise Exception()
+    if cam_coord is None:
+        print('please specify the type of the camera coordinate, \'opencv\' or \'opengl\'')
+        raise Exception()
+    
     neg_z_axis = target - cam_pose
     neg_z_axis = neg_z_axis/np.linalg.norm(neg_z_axis)
     x_axis = np.cross(neg_z_axis, up)
@@ -189,13 +196,19 @@ def T_lookat(cam_pose, up, target,type=None, cam_coord=None):
     z_axis = -neg_z_axis
 
     R_cam = np.stack((x_axis,y_axis,z_axis),0).transpose()
-    T = RC2T(R_cam,cam_pose,type)
-    if cam_coord is None:
-        print('please specify the type of the camera coordinate, \'opencv\' or \'opengl\'')
-        raise Exception()
-    
+    T = coord_trans_world2cam(R_cam,cam_pose,type)
+     
     if cam_coord=='opencv':
-        T = T @ np.array([[1,0,0,0],[0,-1,0,0],[0,0,-1,0],[0,0,0,1]])
+        if type == 'c2w':
+            T = T @ np.array([[1,0,0,0],[0,-1,0,0],[0,0,-1,0],[0,0,0,1]])
+        elif type == 'w2c':
+            T = np.array([[1,0,0,0],[0,-1,0,0],[0,0,-1,0],[0,0,0,1]]) @ T
+    elif cam_coord=='opengl':
+        pass
+    else:
+        print('Incorrect camera coordinate form. Please specify the type as \'opencv\' or \'opengl\'')
+        raise Exception()
+
     #t = -R @ cam_pose
     #T_w2c = np.eye(4,dtype=float)
     #T_w2c[:3,:3] = R

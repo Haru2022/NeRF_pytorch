@@ -75,6 +75,7 @@ def load_replica_data(args, train_ids, test_ids, data_type='rgb'):
 
     focal = W / 2.0
     K = gen_intrinsics(focal=focal,H=H,W=W,type='opencv')
+    K = K[:3,:3]
     #K = np.array([[focal, 0, (W - 1) * 0.5], [0, focal, (H - 1) * 0.5], [0, 0, 1]])
 
     if args.resize_factor != 1.:

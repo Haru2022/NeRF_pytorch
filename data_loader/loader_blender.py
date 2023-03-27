@@ -125,6 +125,7 @@ def load_blender_data(basedir, resize_factor, testskip=1, white_bkgd=False):
         imgs = imgs[..., :3]
 
     K = gen_intrinsics(focal=focal,H=H,W=W,type='opengl')
+    K = K[:3,:3]
     
         
     return imgs, poses, render_poses, [H, W, K], i_split, depth_imgs, normal_imgs
