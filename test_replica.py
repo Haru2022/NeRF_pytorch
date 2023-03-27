@@ -41,6 +41,8 @@ def test():
             # pcl_rgb concatenate
             pts = rays_o + rays_d * np.broadcast_to(depth,np.shape(rays_d)) #(HxW,3)
             pcl_rgb_gt_local = np.concatenate((pts, rgb), -1)
+            valid = np.where(depth>0)
+            pcl_rgb_gt_local = pcl_rgb_gt_local[pcl_rgb_gt_local[valid[...,0],...]]
 
             if pcl_rgb_gt is None:
                 pcl_rgb_gt = pcl_rgb_gt_local
