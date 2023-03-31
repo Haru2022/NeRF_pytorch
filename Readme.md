@@ -56,7 +56,7 @@
     | dataset_code_iters  | PSNR  | SSIM   | LPIPS  |
     |---|---|---|---|
     | synthetic_lego_haru_200K (resize:50%)  |  30.43 |0.957 |0.039 |
-    synthetic_lego_haru_500K (full size)  |  32.35 |0.965 |0.045 |
+    | synthetic_lego_haru_500K (full size)  |  32.35 |0.965 |0.045 |
     | synthetic_lego_nerf_500K  |  32.54 |0.961 |0.050 |
     | synthetic_hotdog_haru_200K (full size)  |  34.82 |0.966 |0.048 |
     | synthetic_hotdog_nerf_500K  |  36.18 |0.974 | 0.121 |
