@@ -7,7 +7,7 @@ from configs.configs_loader import initial
 from data_loader.loader_blender import load_blender_data
 from nerf.nerf_constructor import get_embedder, NeRF
 from nerf.render import render_test
-from tools.data_processor import get_rays_np
+from tools.data_processor import get_rays_np, get_rays_decomposed_np
 import imageio
 
 
@@ -30,6 +30,8 @@ def test():
             normal = normal_imgs[idx]
             pose_test = poses[count+idx]
             rays_o, rays_d = get_rays_np(H,W,K,pose_test) #(H,W,3)
+            rays_o_w, rays_d_w = get_rays_decomposed_np(H=H,W=W,u0=K[0,2],v0=K[1,2],type='opengl',focal=K[0,0],c2w=pose_test) #(H,W,3)
+            #print(np.mean(rays_o-rays_o_w),np.mean(rays_d-rays_d_w))
 
             # reshape data
             rays_o = np.reshape(rays_o, [-1,3]) #(HxW,3)
@@ -104,7 +106,7 @@ if __name__ == '__main__':
     H,W = int(H), int(W)
     i_train, i_val, i_test = i_split
     #print(i_val, i_test)
-    reload_gt = False
+    reload_gt = True
     # the radius of the camera pose ==4.03
     # the obj is enclosed with a shpere with r=4
     args.near = 2.

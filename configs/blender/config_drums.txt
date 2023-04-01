@@ -1,0 +1,18 @@
+expname = drums_train
+basedir = ./logs/blender/drums
+datadir = /home/user/NeRF_pytorch/data/nerf_synthetic/drums
+
+resize_factor = 1.
+
+N_samples = 64
+N_importance = 128
+N_train = 1024
+N_test = 1024
+N_iters = 500000
+
+i_save = 20000
+i_test = 20000
+
+testskip = 8
+
+white_bkgd = True

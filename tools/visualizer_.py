@@ -110,4 +110,4 @@ def test():
         normal = None
     pcd_gen(pts,color,normal)
 
-test()
+#test()

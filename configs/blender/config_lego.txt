@@ -1,6 +1,6 @@
 expname = lego_train
 basedir = ./logs/blender/lego
-datadir = /home/cloud9/nerf/data/nerf_synthetic/lego
+datadir = /home/user/NeRF_pytorch/data/nerf_synthetic/lego
 
 resize_factor = 1.0
 

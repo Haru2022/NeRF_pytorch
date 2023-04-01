@@ -61,7 +61,6 @@ def coord_trans_img2pix(dx=1.,dy=1.,u0=None,v0=None, H=0, W=0 ,type=None, other_
     elif type != 'opencv':
         print('Error: The image coordinate type "{}" is wrong. please specify one type from "opencv", "opengl" or your self-defined type "other" and pass it by the arg \'other_type\''.format(type))
         raise Exception('coord_trans_img2pix')
-    
     return mtx
 
 #print(coord_trans_img2pix(H=500,W=600,type='other',other_type=[[-1,0,0],[0,1,0],[0,0,-1]]))
@@ -76,6 +75,7 @@ def coord_trans_cam2img(focal_x, focal_y):
     mtx = np.eye(4,dtype=float)
     mtx[0,0] = focal_x
     mtx[1,1] = focal_y
+
     return mtx
 
 
