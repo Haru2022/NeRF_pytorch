@@ -21,8 +21,8 @@ def train():
     # main process
     for i in range(0 if int(checkpoint)==0 else int(checkpoint), N_iters):
         img_i = np.random.choice(i_train)
-        gt_rgb = imgs[img_i].to(args.device)
-        pose = poses[img_i, :3, :4].to(args.device)
+        gt_rgb = imgs[img_i]
+        pose = poses[img_i, :3, :4]
 
         # get random sampled rays batch
         gt_rgb_batch, rays_batch = get_rays_batch_per_image(gt_rgb, K, pose, args.N_train)
@@ -135,9 +135,12 @@ if __name__ == '__main__':
 
 
     # move data to gpu
-    imgs = torch.Tensor(imgs).cpu()
-    poses = torch.Tensor(poses).cpu()
+    imgs = torch.Tensor(imgs).to(args.device)
+    poses = torch.Tensor(poses).to(args.device)
     K = torch.Tensor(K).to(args.device)
+    
+    
+    #torch.set_num_threads(15)
 
     train()
     

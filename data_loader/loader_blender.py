@@ -75,11 +75,12 @@ def load_blender_data(basedir, resize_factor, testskip=1, white_bkgd=False):
             if s == 'test':
                 depth_file = os.path.join(basedir, frame['file_path'] + '_depth_0001' + '.png')
                 normal_file = os.path.join(basedir, frame['file_path'] + '_normal_0001' + '.png')
-                #print(fname,depth_file,normal_file)
-                depth_img = imageio.imread(depth_file)
-                normal_img = imageio.imread(normal_file)
-                depth_imgs.append(depth_img[...,0])
-                normal_imgs.append(normal_img[...,:3])
+                if os.path.exists(depth_file) and os.path.exists(normal_file):
+                    #print(fname,depth_file,normal_file)
+                    depth_img = imageio.imread(depth_file)
+                    normal_img = imageio.imread(normal_file)
+                    depth_imgs.append(depth_img[...,0])
+                    normal_imgs.append(normal_img[...,:3])
 
         imgs = (np.array(imgs) / 255.).astype(np.float32) # keep all 4 channels (RGBA)
         poses = np.array(poses).astype(np.float32)

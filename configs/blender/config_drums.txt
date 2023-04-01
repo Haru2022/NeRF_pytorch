@@ -1,6 +1,6 @@
-expname = hotdog_train
-basedir = ./logs/blender/hotdog
-datadir = /home/user/NeRF_pytorch/data/nerf_synthetic/hotdog
+expname = drums_train
+basedir = ./logs/blender/drums
+datadir = /home/user/NeRF_pytorch/data/nerf_synthetic/drums
 
 resize_factor = 1.
 
