@@ -7,7 +7,7 @@ from configs.configs_loader import initial
 from data_loader.loader_replica import load_replica_data
 from nerf.nerf_constructor import get_embedder, NeRF
 from nerf.render import render_test
-from tools.data_processor import get_rays_np
+from tools.data_processor import get_rays_np, get_rays_decomposed_np
 from tools.render_pose_gen import render_pose_marching
 from tools.coord_trans_np import rot_x, rotation_along_axis, trans_t
 import imageio
@@ -29,7 +29,7 @@ def test():
             img = imgs[idx] #(H,W,3)
             depth = depths[idx] #(H,W,1)
             pose = poses[idx]
-            rays_o, rays_d = get_rays_np(H,W,K,pose) #(H,W,3)
+            rays_o, rays_d = get_rays_np(H,W,p2c,pose) #(H,W,3)
 
             # reshape data
             rays_o = np.reshape(rays_o, [-1,3]) #(HxW,3)
@@ -37,6 +37,35 @@ def test():
             depth = np.reshape(depth, [-1,1]) #(HxW,1)
             rgb = np.reshape(img,[-1,3]) #(HxW,3)
             #print( rays_o.shape,rays_d.shape,depth.shape,rgb.shape)
+            
+            # coordinate transformation visualization
+            if idx == 0:
+                rays_o_w,rays_d_w, pt_coords_pix, pt_coords_img, rays_d_cam,rays_pix_w = get_rays_decomposed_np(H=H,W=W,type='opencv',focal=K[0,0],c2w=pose) #(H,W,3)
+                rays_o_w = np.reshape(rays_o_w, [-1,3])
+                rays_d_w = np.reshape(rays_d_w, [-1,3])
+                pt_coords_pix = np.reshape(pt_coords_pix, [-1,3])
+                pt_coords_img = np.reshape(pt_coords_img, [-1,3])
+                rays_d_cam = np.reshape(rays_d_cam, [-1,3])
+                rays_pix_w = np.reshape(rays_pix_w, [-1,3])
+                # the depth of the image plane in the camera coordiantes ==1. After the depth scaling, some obj with depth <1 (but >0) is behind the image plane.
+                # Therefore, add an offset to move the image and pixel planes along the -z axis in 1 unit.
+                offset = pose @ np.array([0,0,-1,1])
+                print(pose, offset)
+                offset = offset[:3]
+                pt_pix_cam = offset + rays_pix_w * 0.4 # for visualization. act as the focal scaling from camera coordinate to image plane.
+                pt_img = offset + rays_d_w * 0.4
+                pt_cam = offset + rays_d_w
+                pt_w = rays_o_w + rays_d_w * np.broadcast_to(depth,np.shape(rays_d_w))
+                pt_pix_cam = np.concatenate([pt_pix_cam,rgb], -1)
+                pt_img = np.concatenate([pt_img,rgb], -1)
+                pt_cam = np.concatenate([pt_cam,rgb], -1)
+                pt_w = np.concatenate([pt_w,rgb], -1)
+                pt_pix_cam[...,3:] = pt_pix_cam[...,3:] + np.array([0.5,0,0])
+                pt_img[...,3:] = pt_img[...,3:] + np.array([0,0.5,0])
+                pt_cam[...,3:] = pt_cam[...,3:] + np.array([0,0,0.5])
+                visual = np.concatenate([pt_pix_cam, pt_img,pt_cam,pt_w],0)
+                np.save(os.path.join(visual_dir,'{}_coords_trans_visual.npy'.format(args.expname)),visual,'wb')
+                
 
             # pcl_rgb concatenate
             pts = rays_o + rays_d * np.broadcast_to(depth,np.shape(rays_d)) #(HxW,3)
@@ -101,7 +130,7 @@ def test():
         for idx, pose in enumerate(render_poses_torch):
             #print(pose)
             print('Process: {}/{}'.format(idx,render_poses_torch.shape[0]))
-            pcl_rgb_valid, rgb = render_test(position_embedder, view_embedder, model_coarse, model_fine, pose[None,...], hwk, args, obj_recon=True)
+            pcl_rgb_valid, rgb = render_test(position_embedder, view_embedder, model_coarse, model_fine, pose[None,...], hwk, p2c, args, obj_recon=True)
             if pcl_rgb_valids is None:
                 pcl_rgb_valids = pcl_rgb_valid
                 rgbs = rgb
@@ -137,6 +166,7 @@ if __name__ == '__main__':
     print('Load data from', args.datadir)
 
     H, W, K = hwk
+    p2c = np.linalg.inv(K)
     print("h,w,k:{},{},{}".format(H,W,K))
     H,W = int(H), int(W)
     i_train, i_test = i_split

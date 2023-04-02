@@ -25,7 +25,7 @@ def train():
         gt_rgb = images[img_i].to(args.device)
         pose = poses[img_i, :3, :4].to(args.device)
 
-        target_c, batch_rays = get_rays_batch_per_image(gt_rgb,K,pose,args.N_train)
+        target_c, batch_rays = get_rays_batch_per_image(gt_rgb,p2c,pose,args.N_train)
 
         z_val_coarse = z_val_sample(args.N_train, args.near, args.far, args.N_samples)
         all_info = nerf_main(batch_rays, position_embedder, view_embedder, model_coarse, model_fine, z_val_coarse, args)
@@ -81,7 +81,7 @@ def train():
             with torch.no_grad():
                 test_poses = torch.Tensor(poses[selected_i_test].to(args.device))
                 test_imgs = images[selected_i_test]
-                render_test(position_embedder, view_embedder, model_coarse, model_fine, test_poses, hwk, args,
+                render_test(position_embedder, view_embedder, model_coarse, model_fine, test_poses, hwk, p2c, args,
                             gt_imgs=test_imgs, savedir=testsavedir)
             print('Training model saved!')
             args.is_train = True
@@ -135,5 +135,6 @@ if __name__ == '__main__':
     images = torch.Tensor(images).cpu()
     poses = torch.Tensor(poses).cpu()
     K = torch.Tensor(K).to(args.device)
+    p2c = torch.linalg.inv(K).to(args.device)
     
     train()

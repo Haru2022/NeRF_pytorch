@@ -25,7 +25,7 @@ def train():
         pose = poses[img_i, :3, :4].to(args.device)
 
         # get random sampled rays batch
-        gt_rgb_batch, rays_batch = get_rays_batch_per_image(gt_rgb, K, pose, args.N_train)
+        gt_rgb_batch, rays_batch = get_rays_batch_per_image(gt_rgb, p2c, pose, args.N_train)
 
         # network inference
 
@@ -83,7 +83,7 @@ def train():
             with torch.no_grad():
                 test_poses = torch.Tensor(poses[selected_i_test].to(args.device))
                 test_imgs = imgs[selected_i_test]
-                render_test(position_embedder, view_embedder, model_coarse, model_fine, test_poses, hwK, args,
+                render_test(position_embedder, view_embedder, model_coarse, model_fine, test_poses, hwK, p2c, args,
                             gt_imgs=test_imgs, savedir=testsavedir)
             print('Training model saved!')
             args.is_train = True
@@ -138,6 +138,7 @@ if __name__ == '__main__':
     imgs = torch.Tensor(imgs).cpu()
     poses = torch.Tensor(poses).cpu()
     K = torch.Tensor(K).to(args.device)
+    p2c = torch.linalg.inv(K).to(args.device)
 
     train()
     

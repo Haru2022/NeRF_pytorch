@@ -29,16 +29,15 @@ def test():
             depth = depth_imgs[idx]
             normal = normal_imgs[idx]
             pose_test = poses[count+idx]
-            rays_o, rays_d = get_rays_np(H,W,K,pose_test) #(H,W,3)
-            rays_o_w, rays_d_w = get_rays_decomposed_np(H=H,W=W,u0=K[0,2],v0=K[1,2],type='opengl',focal=K[0,0],c2w=pose_test) #(H,W,3)
-            #print(np.mean(rays_o-rays_o_w),np.mean(rays_d-rays_d_w))
-
+            rays_o, rays_d = get_rays_np(H,W,p2c,pose_test) #(H,W,3)
+            
             # reshape data
             rays_o = np.reshape(rays_o, [-1,3]) #(HxW,3)
             rays_d = np.reshape(rays_d, [-1,3]) #(HxW,3)
             depth = np.reshape(depth, [-1,1]) #(HxW,1)
             normal = np.reshape(normal,[-1,3]) #(HxW,3)
             rgb = np.broadcast_to(np.array([0.5,0.5,0.5], dtype=float), np.shape(rays_d))
+            
             # pcl_rgb concatenate
             pts = rays_o + rays_d * np.broadcast_to(depth,np.shape(rays_d)) #(HxW,3)
             pcl_rgb_normal_gt_local = np.concatenate((pts, rgb, normal), -1)
@@ -66,7 +65,7 @@ def test():
         for idx, pose in enumerate(render_poses):
             #print(pose)
             print('Process: {}/{}'.format(idx,render_poses.shape[0]))
-            pcl_rgb_valid, rgb = render_test(position_embedder, view_embedder, model_coarse, model_fine, pose[None,...], hwK, args, obj_recon=True)
+            pcl_rgb_valid, rgb = render_test(position_embedder, view_embedder, model_coarse, model_fine, pose[None,...], hwK, p2c, args, obj_recon=True)
             if pcl_rgb_valids is None:
                 pcl_rgb_valids = pcl_rgb_valid
                 rgbs = rgb
@@ -102,6 +101,7 @@ if __name__ == '__main__':
     # load data
     imgs, poses, render_poses, hwK, i_split, depth_imgs, normal_imgs = load_blender_data(args.datadir, args.resize_factor, args.testskip, args.white_bkgd)
     H,W,K = hwK
+    p2c = np.linalg.inv(K)
     print("h,w,k:{},{},{}".format(H,W,K))
     H,W = int(H), int(W)
     i_train, i_val, i_test = i_split

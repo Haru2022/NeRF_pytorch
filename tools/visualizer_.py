@@ -97,7 +97,9 @@ def test():
     #data = np.load('./logs/blender/hotdog/hotdog_train/202303231012/visualization/obj_resize_0.2.npy')
 
     #data = np.load('./logs/replica/room_0/202303252054/visualization/room_0_gt.npy')
-    data = np.load('./logs/replica/room_0/202303252054/visualization/obj_resize_1.0.npy')
+    #data = np.load('./logs/replica/room_0/202303252054/visualization/obj_resize_1.0.npy')
+    data = np.load('./logs/replica/room_0/202304021343/visualization/room_0_coords_trans_visual.npy')
+
 
     pts = data[...,:3]
     z_min = np.min(pts[...,2])
@@ -110,4 +112,4 @@ def test():
         normal = None
     pcd_gen(pts,color,normal)
 
-#test()
+test()

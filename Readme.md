@@ -1,3 +1,12 @@
+**2 April 2023 v1.2**
+- Correct the construction of the transformation from image coordinates to pixel coordinates.
+- Add the training result on blender_drums. See **24 Mar 2023 v1.1**.
+- Visualization about the coordinate transformation from pixel plane to the world coordiantes.
+    <div align=center><img src="./readme_visual/coord_trans_visual.png" width="60%"><center>Coordinate Transformation Visualization</center></div>
+
+    The images with red, green and blue background are the projections of the scene in the world coordinates on the pixel plane, image plane and in the coordinate coordinates, respectively. The details about these three transformations among these four coordinate system will be posted soon.
+
+
 **21 Mar 2023 v1.2**
 - Update the evaluation metrics on the blender_lego dataset after 500K iters. See **24 Mar 2023 v1.1**
 
@@ -60,7 +69,9 @@
     | synthetic_lego_nerf_500K  |  32.54 |0.961 |0.050 |
     | synthetic_hotdog_haru_200K (full size)  |  34.82 |0.966 |0.048 |
     | synthetic_hotdog_nerf_500K  |  36.18 |0.974 | 0.121 |
-    ||||
+    | synthetic_drums_haru_500K (resize:50%)  |  24.93 |0.923 |0.067 |
+    | synthetic_drums_nerf_500K  |  25.01 |0.925 | 0.091 |
+
 
 - Visualization about the syhthetic views:
     <div align=center><img src="./readme_visual/rgb_lego.gif" width="50%"><img src="./readme_visual/rgb_hotdog.gif" width="50%"></div>

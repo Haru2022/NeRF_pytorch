@@ -66,18 +66,21 @@ r_z = lambda yaw: np.array([
     # this can be helpful for understanding the process of rendering_poses generation of lego data.
 ###
 
-def get_rays(H, W, K, c2w=None):
+def get_rays(H, W, p2c=None, c2w=None):
     i, j = torch.meshgrid(torch.linspace(0, W - 1, W),
                           torch.linspace(0, H - 1, H))  # pytorch's meshgrid has indexing='ij'
     i = i.t()
     j = j.t()
 
     # depth is always equals to 1, (H,W,3)
-    dirs = torch.stack([(i - K[0, 2]) / K[0, 0], (j - K[1, 2]) / K[1, 1], K[2, 2] * torch.ones_like(i)], -1)
+    #dirs = torch.stack([(i - K[0, 2]) / K[0, 0], (j - K[1, 2]) / K[1, 1], K[2, 2] * torch.ones_like(i)], -1)
+    
+    dirs = torch.stack([i,j,torch.ones_like(i)],-1)
+    rays_d_cam = torch.sum(dirs[...,np.newaxis,:] * p2c[:3, :3], -1)
 
     #dirs = dirs[..., np.newaxis] # (H,W,3,1)
     #rays_d = torch.matmul(c2w[:3, :3],dirs).squeeze(-1) # (H,W,3,1) to (H,W,3)
-    rays_d = torch.sum(dirs[..., np.newaxis, :] * c2w[:3, :3], -1)
+    rays_d = torch.sum(rays_d_cam[..., np.newaxis, :] * c2w[:3, :3], -1)
 
     # Rotate ray directions from camera frame to the world frame
     # dot product, equals to: [c2w.dot(dir) for dir in dirs]
@@ -93,64 +96,48 @@ def get_rays_decomposed_np(H=0, W=0, dx=1.,dy=1.,u0=None,v0=None, type=None, foc
     
     T_p2i = np.linalg.inv(coord_trans_img2pix(dx,dy,u0,v0,H,W,type)) # pixel to image plane
     T_i2c = np.linalg.inv(coord_trans_cam2img(focal,focal)) # image plane to camera coordiates
-    K = coord_trans_img2pix(dx,dy,u0,v0,H,W,type) @ coord_trans_cam2img(focal,focal)
-    print(K)
-    K = K[:3,:3]
-    
     
     # Pixel plane < In Homogenuous Form>
     pt_coords_pix = np.stack([i,j,np.ones_like(i)],-1) # (H,W,3)
     
     # Image plane
     pt_coords_img = np.sum(pt_coords_pix[...,np.newaxis,:] * T_p2i[:3,:3],-1)
-    #print(pt_coords_pix[0,0,:],pt_coords_img[0,0,:])
     
     # Camera coordinates
-    rays_o_cam = np.stack([np.zeros_like(i),np.zeros_like(i),np.zeros_like(i)],-1) #(H,W,3)
-    pt_coords_cam = np.sum(pt_coords_img[...,np.newaxis,:] * T_i2c[:3,:3],-1)
     # here comes the direction with depth==1, will be rescaled according to
     # the predicted depth image for 3d location prediction in the world coordinates.
-    rays_d_cam = pt_coords_cam-rays_o_cam
-    dirs = np.stack([(i - K[0, 2]) / K[0, 0], (j - K[1, 2]) / K[1, 1], K[2, 2] * np.ones_like(i)], -1)
-    rays_d = np.sum(dirs[..., np.newaxis, :] * c2w[:3, :3], -1)
-    
-    print(dirs[0,0,:],rays_d_cam[0,0,:])
-    print(np.mean(dirs-rays_d_cam))
-    print(np.concatenate([dirs,rays_d_cam],axis=-1))
+    rays_d_cam = np.sum(pt_coords_img[...,np.newaxis,:] * T_i2c[:3,:3],-1)
     
     # World coordinates 
-    rays_o_cam_homo = np.concatenate([rays_o_cam,np.ones((H,W,1),dtype=float)],axis=-1) # (H,W,4)
-    rays_o_w = np.sum(rays_o_cam_homo[..., np.newaxis, :] * c2w, -1)
-    rays_o_w = np.matmul(np.broadcast_to(c2w,(H,W,4,4)),rays_o_cam_homo[..., np.newaxis]).squeeze(-1)
-    scalar_o = rays_o_w[...,2]
-    scalar_o = np.broadcast_to(scalar_o[...,np.newaxis],np.shape(rays_o_w))
-    rays_o_w = rays_o_w/scalar_o
-    
-    #print(rays_d_cam-dirs)
     rays_d_w = np.sum(rays_d_cam[..., np.newaxis, :] * c2w[:3, :3], -1)
-    print(rays_d[0,0,:],rays_d_w[0,0,:])
-    #print(np.concatenate([rays_d,rays_d_w],axis=-1))
+    rays_o_w = np.broadcast_to(c2w[:3, -1], np.shape(rays_d_w))
+
 
     
-    # for visualization test
-    return rays_o_w,rays_d_w
+    # for visualization test, change to only return rays_o_w and rays_d_w only
+    rays_pix_cam = np.sum(pt_coords_pix[...,np.newaxis,:] * T_i2c[:3,:3],-1)
+    rays_pix_w = np.sum(rays_pix_cam[..., np.newaxis, :] * c2w[:3, :3], -1)
+    return rays_o_w,rays_d_w, pt_coords_pix, pt_coords_img, rays_d_cam, rays_pix_w
     
 
 
-def get_rays_np(H, W, K, c2w):
+def get_rays_np(H, W, p2c, c2w):
     i, j = np.meshgrid(np.arange(W, dtype=np.float32), np.arange(H, dtype=np.float32), indexing='xy')
     # the camera coords is right-up-backward. However, the generated meshgrid is right-down-forward.
     # Therefore the direction should be transformed by (1,-1,-1).
-    dirs = np.stack([(i - K[0, 2]) / K[0, 0], (j - K[1, 2]) / K[1, 1], K[2, 2] * np.ones_like(i)], -1) # depth is always equals to 1, (H,W,3)
+    #dirs = np.stack([(i - K[0, 2]) / K[0, 0], (j - K[1, 2]) / K[1, 1], K[2, 2] * np.ones_like(i)], -1) # depth is always equals to 1, (H,W,3)
+    
+    dirs = np.stack([i,j,np.ones_like(i)],-1)
+    rays_d_cam = np.sum(dirs[...,np.newaxis,:] * p2c[:3,:3], -1)
     # Rotate ray directions from camera frame to the world frame
-    rays_d = np.sum(dirs[..., np.newaxis, :] * c2w[:3, :3], -1)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
+    rays_d = np.sum(rays_d_cam[..., np.newaxis, :] * c2w[:3, :3], -1)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
     # Translate camera frame's origin to the world frame. It is the origin of all rays.
     rays_o = np.broadcast_to(c2w[:3, -1], np.shape(rays_d)) # (H,W,3)
     return rays_o, rays_d
 
-def get_rays_batch_per_image(rgb, intrinsic, c2w, N_train):
+def get_rays_batch_per_image(rgb, p2c, c2w, N_train):
     H, W, C = rgb.shape
-    rays_o, rays_d = get_rays(H, W, intrinsic, c2w) #(H,W,3)
+    rays_o, rays_d = get_rays(H, W, p2c, c2w) #(H,W,3)
 
     #coords = torch.stack(torch.meshgrid(torch.linspace(0, H - 1, H), torch.linspace(0, W - 1, W)),-1) #(W,H,2)
     #coords = torch.reshape(coords,[-1,2])

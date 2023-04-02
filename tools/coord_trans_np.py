@@ -49,18 +49,21 @@ def coord_trans_img2pix(dx=1.,dy=1.,u0=None,v0=None, H=0, W=0 ,type=None, other_
         v0 = (H - 1) * .5
     mtx[0,2] = u0
     mtx[1,2] = v0
-
-
+    
+    # coordinate totation
+    rot_coords = np.eye(4,dtype=float)
     if type == 'opengl':
-        mtx[1,1] = -mtx[1,1]
-        mtx[2,2] = -mtx[2,2]
+        rot_coords[1,1] = -rot_coords[1,1]
+        rot_coords[2,2] = -rot_coords[2,2]
     elif type == 'other':
         other_type = np.array(other_type,dtype=float)
         for i in range(0,3):
-            mtx[i,i] = mtx[i,i]*other_type[i]
+            rot_coords[i,i] = rot_coords[i,i]*other_type[i]
     elif type != 'opencv':
         print('Error: The image coordinate type "{}" is wrong. please specify one type from "opencv", "opengl" or your self-defined type "other" and pass it by the arg \'other_type\''.format(type))
         raise Exception('coord_trans_img2pix')
+    
+    mtx = mtx @ rot_coords
     return mtx
 
 #print(coord_trans_img2pix(H=500,W=600,type='other',other_type=[[-1,0,0],[0,1,0],[0,0,-1]]))
