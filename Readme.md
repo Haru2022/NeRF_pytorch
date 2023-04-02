@@ -6,7 +6,7 @@
 
     <img src="./readme_visual/coord_trans_visual.png" width="60%"><center>Coordinate Transformation Visualization</center>
 
-    <img src="./readme_visual/coord_trans_visual.png" width="60%"><center>Coordinate Transformation Visualization</center>
+    <img src="./readme_visual/coord_trans_visual1.png" width="60%">
 
     </div>
 
