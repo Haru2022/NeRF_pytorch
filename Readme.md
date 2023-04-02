@@ -4,9 +4,10 @@
 - Visualization about the coordinate transformation from pixel plane to the world coordiantes.
     <div align=center>
 
-    <img src="./readme_visual/coord_trans_visual.png" width="60%">
-    <center>Coordinate Transformation Visualization</center>
-    
+    <img src="./readme_visual/coord_trans_visual.png" width="60%"><center>Coordinate Transformation Visualization</center>
+
+    <img src="./readme_visual/coord_trans_visual.png" width="60%"><center>Coordinate Transformation Visualization</center>
+
     </div>
 
     The images with red, green and blue background are the projections of the scene in the world coordinates on the pixel plane, image plane and in the coordinate coordinates, respectively. The details about these three transformations among these four coordinate system will be posted soon.
