@@ -1,3 +1,6 @@
+**3 April 2023 v1.3**
+- Reorganize the coordinate transformation tool
+
 **3 April 2023 v1.2**
 - Add crop opearation for accelarating the convergence of the network. In some synthetic datasets, most of the area of an image is filled with white background. If too many rays are sampled from such meaningless area at the early stage, the network may be guided towards wrong gradient direction and the final network performance varies in a wide region. Sometimes it may be impossible to turn it back to the right direction. Therefore, for accelerating the training, the images will be central-cropped at the begining. Below is an example about the influence of crop operation on the final network performance (Resizing the image to be small can act as similar effect to central crop because the possibility that the rays sampled from the meaningless region decreases when the total number of sampling rays is the same.):
 
