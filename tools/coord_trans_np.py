@@ -258,7 +258,7 @@ def T_convert(T,type=None):
 
     if type =='wc2cw':
         R_cam = R.transpose()
-        C_cam = - R @ t
+        C_cam = - R.transpose() @ t
         T[:3,:3] = R_cam
         T[:3,3] = C_cam
     elif type == 'cw2wc':
@@ -299,7 +299,128 @@ def rotation_along_axis(axis, rad):
 
 #print(Rotation_along_axis([1,1,1],np.pi))
 
-def cam_transform_c2w(delta_R, delta_C, T_c2w):
+def coord_trans_i2w(u0=None, v0=None, dx=1., dy=1., H=None, W=None, cam_coord_type=None, focal=0., depth=1., R_cam=None, C_cam=None, pose_c2w=None, output_type=None):
+    
+    output_type_list = ['p2i','p2c','p2w','i2c','i2w','c2w']
+    # param checking
+    if cam_coord_type is None:
+        print("Please specify the camera coordiante type: 'opengl' or 'opencv'.")
+        raise Exception()
+    elif cam_coord_type != 'opencv' and cam_coord_type != 'opengl':
+        print("Error type of the camera coordinate: {}".format(cam_coord_type))
+        raise Exception()
+    else:
+        pass
+    
+    if output_type_list.count(output_type):
+        print("output type = {}".format(output_type))
+    else:
+        print("Error output type:{}, please choose among the following output types:{}".format(output_type,output_type_list))
+        raise Exception()
+    
+    
+    #############Pixel plane to Image plane#############
+    if u0 is None and v0 is None:
+        u0 = (W - 1) * .5
+        v0 = (H - 1) * .5
+    T_p2i = np.eye(4,dtype=float)
+    T_p2i[0,0] = dx
+    T_p2i[0,2] = -dx * u0
+    T_p2i[1,1] = dy
+    T_p2i[1,2] = -dy * v0
+    if cam_coord_type == 'opengl':
+        T_p2i = np.array([[1,0,0,0],[0,-1,0,0],[0,0,-1,0],[0,0,0,1]]) @ T_p2i
+        
+    if output_type == 'p2i':
+        return T_p2i
+    
+    
+    #############Image plane to Camera coordiante#############
+    T_i2c = depth * np.array([[1./focal, 0, 0,0],[0, 1./focal, 0,0], [0,0,1,0],[0,0,0,1./depth]]) # the default depth of the point in the camera coordinate is 1. Additional depth information is need to recover the 3D info.
+    
+    if output_type == 'p2c':
+        return T_i2c @ T_p2i
+    elif output_type == 'i2c':
+        return T_i2c
+    
+    
+    #############Camera coordinate to World coordinate#############
+    T_c2w = np.eye(4,dtype=float)
+    if pose_c2w is not None:
+        T_c2w = np.array(pose_c2w)
+    else:
+        T_c2w[:3,:3] = np.array(R_cam)
+        T_c2w[:3,3] = np.array(C_cam)
+    
+    if output_type == 'p2w':
+        return T_c2w @ T_i2c @ T_p2i
+    elif output_type == 'i2w':
+        return T_c2w @ T_i2c
+    elif output_type == 'c2w':
+        return T_c2w
+    
+    
 
-    R_cam = T_c2w[:3,:3]
-    #TODO
+
+def coord_trans_w2i(u0=None, v0=None, dx=1., dy=1., H=None, W=None, cam_coord_type=None, focal=0., depth=1., R_cam=None, C_cam=None, pose_w2c=None, output_type=None):
+    
+    output_type_list = ['w2c','w2i','w2p','c2i','c2p','i2p']
+    # param checking
+    if cam_coord_type is None:
+        print("Please specify the camera coordiante type: 'opengl' or 'opencv'.")
+        raise Exception()
+    elif cam_coord_type != 'opencv' and cam_coord_type != 'opengl':
+        print("Error type of the camera coordinate: {}".format(cam_coord_type))
+        raise Exception()
+    else:
+        pass
+    
+    if output_type_list.count(output_type):
+        print("output type = {}".format(output_type))
+    else:
+        print("Error output type:{}, please choose among the following output types:{}".format(output_type,output_type_list))
+        raise Exception()
+    
+    
+    #############World coordinate to Camera coordinate#############
+    T_w2c = np.eye(4,dtype=float)
+    if pose_w2c is not None:
+        T_w2c = np.array(pose_w2c)
+    else:
+        R_cam = np.array(R_cam)
+        C_cam = np.array(C_cam)
+        T_w2c[:3,:3] = R_cam.transpose()
+        T_w2c[:3,3] = - R_cam.transpose() @ C_cam
+        
+    if output_type == 'w2c':
+        return T_w2c
+        
+    
+    #############Camera coordinate to Image plane#############
+    T_c2i = np.eye(4,dtype=float)
+    T_c2i[0,0] = focal
+    T_c2i[1,1] = focal
+    
+    if output_type == 'w2i':
+        return T_c2i @ T_w2c
+    elif output_type == 'c2i':
+        return T_c2i
+    
+    #############Image plane to Pixel plane#############
+    if u0 is None and v0 is None:
+        u0 = (W - 1) * .5
+        v0 = (H - 1) * .5
+    T_i2p = np.eye(4,dtype=float)
+    T_i2p[0,0] = 1./dx
+    T_i2p[1,1] = 1./dy
+    T_i2p[0,2] = u0
+    T_i2p[1,2] = v0
+    if cam_coord_type == 'opengl':
+        T_i2p = T_i2p @ np.array([[1,0,0,0],[0,-1,0,0],[0,0,-1,0],[0,0,0,1]])
+        
+    if output_type == 'w2p':
+        return T_i2p @ T_c2i @ T_w2c
+    elif output_type == 'c2p':
+        return T_i2p @ T_c2i
+    elif output_type == 'i2p':
+        return T_i2p
