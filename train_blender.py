@@ -25,7 +25,10 @@ def train():
         pose = poses[img_i, :3, :4].to(args.device)
 
         # get random sampled rays batch
-        gt_rgb_batch, rays_batch = get_rays_batch_per_image(gt_rgb, p2c, pose, args.N_train)
+        if args.pre_crop and i < args.pre_crop_iters:
+            gt_rgb_batch, rays_batch = get_rays_batch_per_image(gt_rgb, p2c, pose, args.N_train,True,args.crop_factor)
+        else:
+            gt_rgb_batch, rays_batch = get_rays_batch_per_image(gt_rgb, p2c, pose, args.N_train)
 
         # network inference
 

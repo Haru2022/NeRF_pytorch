@@ -1,3 +1,16 @@
+**3 April 2023 v1.2**
+- Add crop opearation for accelarating the convergence of the network. In some synthetic datasets, most of the area of an image is filled with white background. If too many rays are sampled from such meaningless area at the early stage, the network may be guided towards wrong gradient direction and the final network performance varies in a wide region. Sometimes it may be impossible to turn it back to the right direction. Therefore, for accelerating the training, the images will be central-cropped at the begining. Below is an example about the influence of crop operation on the final network performance (Resizing the image to be small can act as similar effect to central crop because the possibility that the rays sampled from the meaningless region decreases when the total number of sampling rays is the same.):
+
+    | dataset_code_is-croppd  | PSNR  | SSIM   | LPIPS  |
+    |---|---|---|---|
+    | synthetic_drum_haru_False_1     |  divergent |divergent |divergent |
+    | synthetic_drum_haru_False_2     |  21.870 |0.843 |0.201 |
+    | synthetic_drum_haru_False_3     |  23.090 |0.869 |0.173 |
+    | synthetic_drum_haru_True     |  TBU | TBU | TBU |
+    | synthetic_drum_haru_False(resize:50%)     |  24.929 |0.923 |0.067 |
+    | synthetic_drum_nerf_unknown     |  25.01 |0.925 |0.091 |
+- The version 1.2 is fixed.
+
 **2 April 2023 v1.2**
 - Correct the construction of the transformation from image coordinates to pixel coordinates.
 - Add the training result on blender_drums. See **24 Mar 2023 v1.1**.
@@ -10,7 +23,7 @@
     The images with red, green and blue background are the projections of the scene in the world coordinates on the pixel plane, image plane and in the coordinate coordinates, respectively. The details about these three transformations among these four coordinate system will be posted soon.
 
 
-**21 Mar 2023 v1.2**
+**28 Mar 2023 v1.2**
 - Update the evaluation metrics on the blender_lego dataset after 500K iters. See **24 Mar 2023 v1.1**
 
 **27 Mar 2023 v1.2**

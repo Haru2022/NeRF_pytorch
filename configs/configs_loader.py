@@ -70,6 +70,12 @@ def config_parser():
                         help='set the width of crop')
     parser.add_argument("--crop_height", type=int,
                         help='set the height of crop')
+    parser.add_argument("--pre_crop", type=bool, default=False,
+                        help='will precrop the img at the begining')
+    parser.add_argument("--pre_crop_iters", type=int, default=20,
+                        help='the num of iters to pre-crop the images')
+    parser.add_argument("--crop_factor", type=float, default=0.5,
+                        help='the pre_crop factor')
     
     # blender flags
     parser.add_argument("--white_bkgd", action='store_true',

@@ -135,7 +135,7 @@ def get_rays_np(H, W, p2c, c2w):
     rays_o = np.broadcast_to(c2w[:3, -1], np.shape(rays_d)) # (H,W,3)
     return rays_o, rays_d
 
-def get_rays_batch_per_image(rgb, p2c, c2w, N_train):
+def get_rays_batch_per_image(rgb, p2c, c2w, N_train, pre_crop=False, crop_factor=0.5):
     H, W, C = rgb.shape
     rays_o, rays_d = get_rays(H, W, p2c, c2w) #(H,W,3)
 
@@ -144,6 +144,14 @@ def get_rays_batch_per_image(rgb, p2c, c2w, N_train):
     #select_inds = np.random.choice(coords.shape[0], size=[N_train], replace=False)
 
     coords_h, coords_w = torch.meshgrid(torch.linspace(0, H - 1, H), torch.linspace(0, W - 1, W))
+    
+    # crop the image at the early stage to accelerate the convergence of the network
+    if pre_crop:
+        dH = int(H//2 * crop_factor)
+        dW = int(W//2 * crop_factor)
+        coords_h = coords_h[H//2-dH:H//2+dH,W//2-dW:W//2+dW]
+        coords_w = coords_w[H//2-dH:H//2+dH,W//2-dW:W//2+dW]
+        
     coords_h, coords_w = torch.reshape(coords_h, [-1]).long(), torch.reshape(coords_w, [-1]).long()
 
     select_inds = np.random.choice(coords_h.shape[0], size=[N_train], replace=False)
