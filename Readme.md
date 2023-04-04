@@ -6,7 +6,7 @@
     | synthetic_drum_haru_False_1     |  divergent |divergent |divergent |
     | synthetic_drum_haru_False_2     |  21.870 |0.843 |0.201 |
     | synthetic_drum_haru_False_3     |  23.090 |0.869 |0.173 |
-    | synthetic_drum_haru_True     |  TBU | TBU | TBU |
+    | synthetic_drum_haru_True     |  25.382 | 0.927 | 0.083 |
     | synthetic_drum_haru_False(resize:50%)     |  24.929 |0.923 |0.067 |
     | synthetic_drum_nerf_unknown     |  25.01 |0.925 |0.091 |
 - The version 1.2 is fixed.
