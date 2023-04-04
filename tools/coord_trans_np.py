@@ -299,7 +299,20 @@ def rotation_along_axis(axis, rad):
 
 #print(Rotation_along_axis([1,1,1],np.pi))
 
-def coord_trans_i2w(u0=None, v0=None, dx=1., dy=1., H=None, W=None, cam_coord_type=None, focal=0., depth=1., R_cam=None, C_cam=None, pose_c2w=None, output_type=None):
+def coord_trans_mtx_gen_p2w(u0=None, v0=None, dx=1., dy=1., H=None, W=None, cam_coord_type=None, focal=0., R_cam=None, C_cam=None, pose_c2w=None, output_type=None):
+    """_summary_
+
+    Args:
+        u0: the pixel offset along x axis, default = W/2
+        v0: the pixel offset along x axis, default = H/2
+        dx: the scalar to convert unit in the image plane to pixel unit along x axis, default = 1.
+        dy the scalar to convert unit in the image plane to pixel unit along y axis, default = 1.
+        cam_coord_type: choose from 'opencv' or 'opengl'
+        output_type: the outout transformation mtx type. choose from ['p2i','p2c','p2w','i2c','i2w','c2w']
+
+    Returns:
+        T: the transformation matrix from the original coords to the target coords.
+    """
     
     output_type_list = ['p2i','p2c','p2w','i2c','i2w','c2w']
     # param checking
@@ -320,49 +333,66 @@ def coord_trans_i2w(u0=None, v0=None, dx=1., dy=1., H=None, W=None, cam_coord_ty
     
     
     #############Pixel plane to Image plane#############
-    if u0 is None and v0 is None:
-        u0 = (W - 1) * .5
-        v0 = (H - 1) * .5
-    T_p2i = np.eye(4,dtype=float)
-    T_p2i[0,0] = dx
-    T_p2i[0,2] = -dx * u0
-    T_p2i[1,1] = dy
-    T_p2i[1,2] = -dy * v0
-    if cam_coord_type == 'opengl':
-        T_p2i = np.array([[1,0,0,0],[0,-1,0,0],[0,0,-1,0],[0,0,0,1]]) @ T_p2i
-        
-    if output_type == 'p2i':
-        return T_p2i
+    if output_type in ['p2i','p2c','p2w']:
+        if u0 is None and v0 is None:
+            u0 = (W - 1) * .5
+            v0 = (H - 1) * .5
+        T_p2i = np.eye(4,dtype=float)
+        T_p2i[0,0] = dx
+        T_p2i[0,2] = -dx * u0
+        T_p2i[1,1] = dy
+        T_p2i[1,2] = -dy * v0
+        if cam_coord_type == 'opengl':
+            T_p2i = np.array([[1,0,0,0],[0,-1,0,0],[0,0,-1,0],[0,0,0,1]]) @ T_p2i
+            
+        if output_type == 'p2i':
+            return T_p2i
     
     
     #############Image plane to Camera coordiante#############
-    T_i2c = depth * np.array([[1./focal, 0, 0,0],[0, 1./focal, 0,0], [0,0,1,0],[0,0,0,1./depth]]) # the default depth of the point in the camera coordinate is 1. Additional depth information is need to recover the 3D info.
-    
-    if output_type == 'p2c':
-        return T_i2c @ T_p2i
-    elif output_type == 'i2c':
-        return T_i2c
+    if output_type in ['i2c','i2w','p2c','p2w']:
+        # the default depth of the point in the camera coordinate is 1. Additional depth information is need acting as scalar to recover the 3D info.
+        T_i2c = np.array([[1./focal, 0, 0,0],[0, 1./focal, 0,0], [0,0,1,0],[0,0,0,1]])
+        
+        if output_type == 'p2c':
+            return T_i2c @ T_p2i
+        elif output_type == 'i2c':
+            return T_i2c
     
     
     #############Camera coordinate to World coordinate#############
-    T_c2w = np.eye(4,dtype=float)
-    if pose_c2w is not None:
-        T_c2w = np.array(pose_c2w)
-    else:
-        T_c2w[:3,:3] = np.array(R_cam)
-        T_c2w[:3,3] = np.array(C_cam)
-    
-    if output_type == 'p2w':
-        return T_c2w @ T_i2c @ T_p2i
-    elif output_type == 'i2w':
-        return T_c2w @ T_i2c
-    elif output_type == 'c2w':
-        return T_c2w
+    if output_type in ['c2w','i2w','p2w']:
+        T_c2w = np.eye(4,dtype=float)
+        if pose_c2w is not None:
+            T_c2w = np.array(pose_c2w)
+        else:
+            T_c2w[:3,:3] = np.array(R_cam)
+            T_c2w[:3,3] = np.array(C_cam)
+        
+        if output_type == 'p2w':
+            return T_c2w @ T_i2c @ T_p2i
+        elif output_type == 'i2w':
+            return T_c2w @ T_i2c
+        elif output_type == 'c2w':
+            return T_c2w
     
     
 
 
-def coord_trans_w2i(u0=None, v0=None, dx=1., dy=1., H=None, W=None, cam_coord_type=None, focal=0., depth=1., R_cam=None, C_cam=None, pose_w2c=None, output_type=None):
+def coord_trans_mtx_gen_w2p(u0=None, v0=None, dx=1., dy=1., H=None, W=None, cam_coord_type=None, focal=0., R_cam=None, C_cam=None, pose_w2c=None, output_type=None):
+    """_summary_
+
+    Args:
+        u0: the pixel offset along x axis, default = W/2
+        v0: the pixel offset along x axis, default = H/2
+        dx: the scalar to convert unit in the image plane to pixel unit along x axis, default = 1.
+        dy the scalar to convert unit in the image plane to pixel unit along y axis, default = 1.
+        cam_coord_type: choose from 'opencv' or 'opengl'
+        output_type: the outout transformation mtx type. choose from ['w2c','w2i','w2p','c2i','c2p','i2p']
+
+    Returns:
+        T: the transformation matrix from the original coords to the target coords.
+    """
     
     output_type_list = ['w2c','w2i','w2p','c2i','c2p','i2p']
     # param checking
@@ -383,44 +413,98 @@ def coord_trans_w2i(u0=None, v0=None, dx=1., dy=1., H=None, W=None, cam_coord_ty
     
     
     #############World coordinate to Camera coordinate#############
-    T_w2c = np.eye(4,dtype=float)
-    if pose_w2c is not None:
-        T_w2c = np.array(pose_w2c)
-    else:
-        R_cam = np.array(R_cam)
-        C_cam = np.array(C_cam)
-        T_w2c[:3,:3] = R_cam.transpose()
-        T_w2c[:3,3] = - R_cam.transpose() @ C_cam
+    if output_type in ['w2c','w2i','w2p']:
+        T_w2c = np.eye(4,dtype=float)
+        if pose_w2c is not None:
+            T_w2c = np.array(pose_w2c)
+        elif output_type == 'w2c':
+            R_cam = np.array(R_cam)
+            C_cam = np.array(C_cam)
+            T_w2c[:3,:3] = R_cam.transpose()
+            T_w2c[:3,3] = - R_cam.transpose() @ C_cam
         
-    if output_type == 'w2c':
-        return T_w2c
-        
+        if output_type == 'w2c':
+            return T_w2c
     
     #############Camera coordinate to Image plane#############
-    T_c2i = np.eye(4,dtype=float)
-    T_c2i[0,0] = focal
-    T_c2i[1,1] = focal
-    
-    if output_type == 'w2i':
-        return T_c2i @ T_w2c
-    elif output_type == 'c2i':
-        return T_c2i
+    if output_type in ['c2i', 'c2p','w2i','w2p']:
+        T_c2i = np.eye(4,dtype=float)
+        T_c2i[0,0] = focal
+        T_c2i[1,1] = focal
+        
+        if output_type == 'w2i':
+            return T_c2i @ T_w2c
+        elif output_type == 'c2i':
+            return T_c2i
     
     #############Image plane to Pixel plane#############
-    if u0 is None and v0 is None:
-        u0 = (W - 1) * .5
-        v0 = (H - 1) * .5
-    T_i2p = np.eye(4,dtype=float)
-    T_i2p[0,0] = 1./dx
-    T_i2p[1,1] = 1./dy
-    T_i2p[0,2] = u0
-    T_i2p[1,2] = v0
-    if cam_coord_type == 'opengl':
-        T_i2p = T_i2p @ np.array([[1,0,0,0],[0,-1,0,0],[0,0,-1,0],[0,0,0,1]])
+    if output_type in ['w2p','c2p','i2p']:
+        if u0 is None and v0 is None:
+            u0 = (W - 1) * .5
+            v0 = (H - 1) * .5
+        T_i2p = np.eye(4,dtype=float)
+        T_i2p[0,0] = 1./dx
+        T_i2p[1,1] = 1./dy
+        T_i2p[0,2] = u0
+        T_i2p[1,2] = v0
+        if cam_coord_type == 'opengl':
+            T_i2p = T_i2p @ np.array([[1,0,0,0],[0,-1,0,0],[0,0,-1,0],[0,0,0,1]])
+            
+        if output_type == 'w2p':
+            return T_i2p @ T_c2i @ T_w2c
+        elif output_type == 'c2p': # the intrinsic.
+            return T_i2p @ T_c2i
+        elif output_type == 'i2p':
+            return T_i2p
+    
+def coords_trans_toolbox(trans_mtx, trans_type, pts, depths, z_axis_type=None):
+    """_summary_
+
+    Args:
+        trans_mtx: _description_
+        trans_type: the start and end coord sys, choose from '['w2c','w2i','w2p','c2i','c2p','i2p','p2i','p2c','p2w','i2c','i2w','c2w']'
+        pts: the input points, (N,3)
+        depths: the depth of the input points in the camera coordinates. (N,1)
+        z_axis_type: +1/-1 for forward/backward z axis type of the camera coordinates
+
+
+    Returns:
+       pts_out: the corresponding point coordinates defined in the target coordinate system
+    """
+    
+    type_list = ['w2c','w2i','w2p','c2i','c2p','i2p','p2i','p2c','p2w','i2c','i2w','c2w']
+    if type_list.count(trans_type):
+        print("output type = {}".format(trans_type))
+    else:
+        print("Error output type:{}, please choose among the following output types:{}".format(trans_type,type_list))
+        raise Exception()
+    
+    # expand to homogeneous form 4x4 or 4x1
+    if pts.shape[1]<4:
+        pts = np.concatenate((pts,np.ones(pts.shape[0],1)),0)
+    if trans_mtx.shape[1]<4:
+        T = np.eye(4)
+        T[:3,:3] = trans_mtx
+        trans_mtx = T
+    # if the z axis of the camera coordinate system is backwawrd, the third elem of the image cooridnate should be set to -1 for transformation consistency
+    if trans_type in ['i2c','i2w','i2p']:
+        pts[...,2] = z_axis_type * np.abs(pts[...,2])
+    pts_out = np.sum(pts[...,np.newaxis,:] * trans_mtx,-1)
+    
+    if trans_type in ['w2p','c2p']:
+        # need to normalize the 3rd elem of the homogeneous coordinate to 1 to get the final pixel coordinate
+        scalars = pts_out[...,2]
+        pts_out = pts_out/np.broadcast_to(scalars[...,np.newaxis],np.shape(pts_out))
+    elif trans_type in ['w2i','c2i']:
+        # need to normalize the 3rd elem of the homogeneous coordinate to +1/-1 to get the final image coordinate
+        scalars = np.abs(pts_out[...,2])
+        pts_out = pts_out/np.broadcast_to(scalars[...,np.newaxis],np.shape(pts_out))
+    elif trans_type in ['p2w','p2c','i2c','i2w']:
+        # add depth info as scalars to recover the 3D coordinate
+        depths = np.reshape(depths,(-1,1))
+        pts_out = pts_out * np.broadcast_to(depths[...,np.newaxis],np.shape(pts_out))
+    elif trans_type in ['w2c','c2w','i2p','p2i']:
+        pass
+    
+    return pts_out[...,:3]
         
-    if output_type == 'w2p':
-        return T_i2p @ T_c2i @ T_w2c
-    elif output_type == 'c2p':
-        return T_i2p @ T_c2i
-    elif output_type == 'i2p':
-        return T_i2p

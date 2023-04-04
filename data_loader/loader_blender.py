@@ -5,7 +5,7 @@ import imageio
 import json
 import cv2
 from tools.data_processor import central_resize_batch
-from tools.coord_trans_np import gen_intrinsics
+from tools.coord_trans_np import gen_intrinsics, coord_trans_mtx_gen_w2p
 from tools.render_pose_gen import render_pose_circle
 
 
@@ -124,7 +124,8 @@ def load_blender_data(basedir, resize_factor, testskip=1, white_bkgd=False):
         print('no white bkgd')
         imgs = imgs[..., :3]
 
-    K = gen_intrinsics(focal=focal,H=H,W=W,type='opengl')
+    #K = gen_intrinsics(focal=focal,H=H,W=W,type='opengl')
+    K = coord_trans_mtx_gen_w2p(H=H,W=W,focal=focal,cam_coord_type='opengl',output_type='c2p')
     K = K[:3,:3]
     
         

@@ -5,7 +5,7 @@ import torch
 import imageio
 import numpy as np
 from tools.data_processor import central_resize_batch
-from tools.coord_trans_np import gen_intrinsics
+from tools.coord_trans_np import coord_trans_mtx_gen_w2p, gen_intrinsics
 
 np.random.seed(0)
 
@@ -74,7 +74,8 @@ def load_replica_data(args, train_ids, test_ids, data_type='rgb'):
     H, W = imgs[0].shape[:2]
 
     focal = W / 2.0
-    K = gen_intrinsics(focal=focal,H=H,W=W,type='opencv')
+    #K = gen_intrinsics(focal=focal,H=H,W=W,type='opencv')
+    K = coord_trans_mtx_gen_w2p(H=H,W=W,focal=focal,cam_coord_type='opencv',output_type='c2p')
     K = K[:3,:3]
     #K = np.array([[focal, 0, (W - 1) * 0.5], [0, focal, (H - 1) * 0.5], [0, 0, 1]])
 
